@@ -1,20 +1,45 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello HomeController!{% endblock %}
+{% block title %}Ohoui - Le moteur de recherche français{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-4 mb-4">Ohoui</h1>
+            <form action="{{ path('app_home') }}" method="get" class="mb-5">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="q" class="form-control" placeholder="Rechercher sur le web ouvert..." value="{{ query|default('') }}">
+                    <button class="btn btn-primary" type="submit">Rechercher</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>/home/nora/Documents/Projects/ohoui/src/Controller/HomeController.php</code></li>
-        <li>Your template at <code>/home/nora/Documents/Projects/ohoui/templates/home/index.html.twig</code></li>
-    </ul>
+    {% if results is not null %}
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <p class="text-muted">{{ results.getNumFound() }} résultats trouvés</p>
+                <hr>
+                {% for doc in results %}
+                    <div class="mb-4">
+                        <h3 class="h5 mb-1"><a href="{{ doc.url }}">{{ doc.title }}</a></h3>
+                        <div class="text-success small mb-1">{{ doc.url }}</div>
+                        <p class="mb-0">{{ doc.content|default('')|u.truncate(200, '...') }}</p>
+                        <span class="badge bg-secondary">{{ doc.language }}</span>
+                        <span class="badge bg-info">{{ doc.domain }}</span>
+                    </div>
+                {% else %}
+                    <p>Aucun résultat trouvé pour votre recherche.</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% elseif query is not empty %}
+         <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <p>Commencez par indexer des données avec <code>php bin/console app:index-sample</code></p>
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
