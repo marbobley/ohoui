@@ -24,5 +24,13 @@ services:
     App\:
         resource: '../src/'
 
+    App\Domain\Repository\SearchEngineInterface: '@App\Infrastructure\Solr\SolrSearchEngine'
+
+    Solarium\Core\Client\Adapter\AdapterInterface:
+        class: Solarium\Core\Client\Adapter\Curl
+
+    Symfony\Component\EventDispatcher\EventDispatcherInterface:
+        class: Symfony\Component\EventDispatcher\EventDispatcher
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

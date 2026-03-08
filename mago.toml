@@ -23,6 +23,7 @@ ambiguous-function-call = { enabled = true }
 literal-named-argument = { enabled = true }
 halstead = { effort-threshold = 7000 }
 too-many-methods = { enabled = true, threshold = 25 }
+excessive-parameter-list = { enabled = true, threshold = 10 }
 no-boolean-flag-parameter = { enabled = true }
 no-else-clause = { enabled = true }
 

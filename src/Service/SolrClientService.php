@@ -5,24 +5,28 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Solarium\Client;
-use Solarium\Core\Client\Adapter\Curl;
+use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Select\Result\Result;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class SolrClientService
 {
     private Client $client;
 
-    public function __construct(string $solrHost, int $solrPort, string $solrPath, string $solrCore)
-    {
-        $adapter = new Curl();
-        $eventDispatcher = new EventDispatcher();
+    public function __construct(
+        AdapterInterface $adapter,
+        EventDispatcherInterface $eventDispatcher,
+        string $solrHost,
+        int $solrPort,
+        string $solrPath,
+        string $solrCore,
+    ) {
         $options = [
             'endpoint' => [
-                'localhost' => [
+                'main' => [
                     'host' => $solrHost,
                     'port' => $solrPort,
                     'path' => $solrPath,
@@ -39,7 +43,7 @@ class SolrClientService
         return $this->client;
     }
 
-    public function search(string $query, int $start = 0, int $rows = 10): ResultInterface
+    public function search(string $query, int $start = 0, int $rows = 10): Result
     {
         /** @var \Solarium\QueryType\Select\Query\Query $select */
         $select = $this->client->createSelect();
@@ -48,7 +52,9 @@ class SolrClientService
         $select->setRows($rows);
 
         /** @var Result $result */
-        return $this->client->select($select);
+        $result = $this->client->select($select);
+
+        return $result;
     }
 
     /**

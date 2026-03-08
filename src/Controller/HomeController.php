@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Service\SolrClientService;
+use App\Application\Service\SearchUseCase;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,18 +15,18 @@ final class HomeController extends AbstractController
 {
     /**
      * @param Request $request
-     * @param SolrClientService $solrClient
+     * @param SearchUseCase $searchUseCase
      * @return Response
      * @throws BadRequestException
      */
     #[Route('/', name: 'app_home')]
-    public function index(Request $request, SolrClientService $solrClient): Response
+    public function index(Request $request, SearchUseCase $searchUseCase): Response
     {
         $query = $request->query->get('q', '*:*');
         $results = null;
 
         if ($query !== '*:*') {
-            $results = $solrClient->search($query);
+            $results = $searchUseCase->execute($query);
         }
 
         return $this->render('home/index.html.twig', [
