@@ -1,0 +1,61 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Symfony
+
+on:
+    push:
+        branches: [ "main" ]
+    pull_request:
+        branches: [ "main" ]
+
+permissions:
+    contents: read
+
+jobs:
+    symfony-tests:
+        runs-on: ubuntu-latest
+        services:
+            mysql:
+                image: mysql:8.0
+                env:
+                    MYSQL_ROOT_PASSWORD: password
+                    MYSQL_DATABASE: blogSymfony_test
+                ports:
+                    - 3306:3306
+                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        steps:
+            - uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+                  extensions: mbstring, xml, ctype, iconv, mysql
+            - uses: actions/checkout@v4
+            - name: Install Dependencies
+              run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+            - name: Format Check
+              run: vendor/bin/mago format --check
+            - name: Lint Check
+              run: vendor/bin/mago lint
+            - name: Guard Perimeter and Structural Check
+              run: vendor/bin/mago guard
+            - name: Static Analysis
+              run: vendor/bin/mago analyze
+            - name: Install Importmap
+              run: php bin/console importmap:install
+            - name: Wait for MySQL
+              run: |
+                  while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
+                      sleep 1
+                  done
+            - name: Create Database and Schema
+              env:
+                  DATABASE_URL: mysql://root:password@127.0.0.1:3306/blogSymfony_test?serverVersion=8.0&charset=utf8mb4
+              run: |
+                  php bin/console doctrine:database:create --env=test --if-not-exists
+                  php bin/console doctrine:schema:create --env=test
+            - name: Execute tests
+              env:
+                  DATABASE_URL: mysql://root:password@127.0.0.1:3306/blogSymfony_test?serverVersion=8.0&charset=utf8mb4
+              run: vendor/bin/phpunit --display-notices
