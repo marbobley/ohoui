@@ -21,12 +21,12 @@ final class SolrClientServiceTest extends TestCase
     protected function setUp(): void
     {
         $this->clientMock = $this->createMock(Client::class);
-        $adapterMock = $this->createMock(AdapterInterface::class);
-        $eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $adapterStub = $this->createStub(AdapterInterface::class);
+        $eventDispatcherStub = $this->createStub(EventDispatcherInterface::class);
 
         $this->service = new SolrClientService(
-            $adapterMock,
-            $eventDispatcherMock,
+            $adapterStub,
+            $eventDispatcherStub,
             'localhost',
             8983,
             '/',
@@ -42,7 +42,7 @@ final class SolrClientServiceTest extends TestCase
     {
         $queryStr = 'test query';
         $selectMock = $this->createMock(SelectQuery::class);
-        $resultMock = $this->createMock(SelectResult::class);
+        $resultStub = $this->createStub(SelectResult::class);
 
         $this->clientMock->expects($this->once())
             ->method('createSelect')
@@ -55,10 +55,10 @@ final class SolrClientServiceTest extends TestCase
         $this->clientMock->expects($this->once())
             ->method('select')
             ->with($selectMock)
-            ->willReturn($resultMock);
+            ->willReturn($resultStub);
 
         $result = $this->service->search($queryStr);
-        $this->assertSame($resultMock, $result);
+        $this->assertSame($resultStub, $result);
     }
 
     public function testIndexDocumentCallsClientUpdate(): void

@@ -49,15 +49,15 @@ class SolrSearchEngineTest extends TestCase
     public function testSearch(): void
     {
         $query = 'test';
-        $resultMock = $this->createMock(Result::class);
+        $resultStub = $this->createStub(Result::class);
 
         $this->solrClientServiceMock->expects($this->once())
             ->method('search')
             ->with($query)
-            ->willReturn($resultMock);
+            ->willReturn($resultStub);
 
         // Simulation d'un itérateur vide pour les résultats
-        $resultMock->method('getIterator')->willReturn(new \ArrayIterator([]));
+        $resultStub->method('getIterator')->willReturn(new \ArrayIterator([]));
 
         $results = $this->solrSearchEngine->search($query);
 

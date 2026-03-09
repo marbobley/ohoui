@@ -18,19 +18,31 @@ jobs:
     symfony-tests:
         runs-on: ubuntu-latest
         services:
-            mysql:
-                image: mysql:8.0
+            postgres:
+                image: postgres:16-alpine
                 env:
-                    MYSQL_ROOT_PASSWORD: password
-                    MYSQL_DATABASE: blogSymfony_test
+                    POSTGRES_DB: blogSymfony_test
+                    POSTGRES_PASSWORD: password
+                    POSTGRES_USER: root
                 ports:
-                    - 3306:3306
-                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+            solr:
+                image: solr:9
+                ports:
+                    - 8983:8983
+                command:
+                    - solr-precreate
+                    - owi_french
         steps:
             - uses: shivammathur/setup-php@v2
               with:
                   php-version: '8.4'
-                  extensions: mbstring, xml, ctype, iconv, mysql
+                  extensions: mbstring, xml, ctype, iconv, pgsql
             - uses: actions/checkout@v4
             - name: Install Dependencies
               run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
@@ -42,18 +54,16 @@ jobs:
               run: vendor/bin/mago analyze
             - name: Install Importmap
               run: php bin/console importmap:install
-            - name: Wait for MySQL
-              run: |
-                  while ! mysqladmin ping -h"127.0.0.1" -P"3306" --silent; do
-                      sleep 1
-                  done
             - name: Create Database and Schema
               env:
-                  DATABASE_URL: mysql://root:password@127.0.0.1:3306/blogSymfony_test?serverVersion=8.0&charset=utf8mb4
+                  DATABASE_URL: postgresql://root:password@127.0.0.1:5432/blogSymfony_test?serverVersion=16&charset=utf8
               run: |
                   php bin/console doctrine:database:create --env=test --if-not-exists
                   php bin/console doctrine:schema:create --env=test
             - name: Execute tests
               env:
-                  DATABASE_URL: mysql://root:password@127.0.0.1:3306/blogSymfony_test?serverVersion=8.0&charset=utf8mb4
+                  DATABASE_URL: postgresql://root:password@127.0.0.1:5432/blogSymfony_test?serverVersion=16&charset=utf8
+                  SOLR_HOST: 127.0.0.1
+                  SOLR_PORT: 8983
+                  SOLR_CORE: owi_french
               run: vendor/bin/phpunit --display-notices
