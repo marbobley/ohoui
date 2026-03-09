@@ -43,6 +43,13 @@ class SolrClientService implements SolrClientServiceInterface
     {
         /** @var \Solarium\QueryType\Select\Query\Query $select */
         $select = $this->client->createSelect();
+
+        if (!\str_contains($query, ':')) {
+            $helper = $select->getHelper();
+            $escapedQuery = $helper->escapeTerm($query);
+            $query = \sprintf('title:%1$s OR content:%1$s', $escapedQuery);
+        }
+
         $select->setQuery($query);
         $select->setStart($start);
         $select->setRows($rows);
