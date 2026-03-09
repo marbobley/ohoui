@@ -27,14 +27,15 @@ Chaque document indexé dans Solr devra comporter au minimum les champs suivants
 ## 4. Fonctionnalités
 
 ### 4.1 Indexation
-- Fournir un service (`SolrClientService`) pour envoyer des documents à Solr.
+- Utiliser un cas d'utilisation (`IndexUseCase`) pour orchestrer l'indexation.
+- Le `IndexUseCase` délègue l'indexation réelle à une implémentation de `SearchEngineInterface` (ex: `SolrSearchEngine`).
 - Fournir une commande console (`app:index-sample`) pour indexer un échantillon de données à des fins de test.
-- Gérer l'ajout (`addDocument`) et la validation (`addCommit`) des documents.
 
 ### 4.2 Recherche
 - Permettre la recherche par mots-clés via un paramètre de requête `q`.
+- Utiliser un cas d'utilisation (`SearchUseCase`) pour orchestrer la recherche.
 - Par défaut, si aucune recherche n'est saisie, ne pas afficher de résultats.
-- Support de la recherche plein texte via le service `SolrClientService::search`.
+- Support de la recherche plein texte via `SearchEngineInterface::search`.
 
 ### 4.3 Interface Utilisateur
 - Une page d'accueil simple (`/`) avec un champ de recherche.

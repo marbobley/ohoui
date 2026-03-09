@@ -30,11 +30,12 @@ Le code source dans `src/` doit être organisé comme suit :
 4. Lancer le test et vérifier qu'il passe.
 5. Refactoriser le code tout en gardant le test vert.
 
-## 4. Tests et Qualité du Code
-Les tests doivent être organisés parallèlement au code source :
+### 4. Tests et Qualité du Code
+Les tests doivent être organisés parallèlement au code source dans `tests/` :
 - `tests/Domain/` : Tests unitaires pour les entités et objets du domaine.
-- `tests/Application/` : Tests pour les cas d'utilisation (Use Cases).
-- `tests/Infrastructure/` : Tests d'intégration pour les adaptateurs (Solr, BD, etc.).
+- `tests/Application/` : Tests unitaires pour les cas d'utilisation (Use Cases) avec des doublures (mocks).
+- `tests/Infrastructure/` : Tests unitaires et d'intégration pour les adaptateurs (Solr, BD, etc.).
+- `tests/Integration/` : Tests d'intégration de bout en bout impliquant plusieurs couches (ex: UseCase + Solr réel).
 - `tests/Controller/` : Tests fonctionnels (WebTestCase) pour l'interface utilisateur.
 
 Toute nouvelle fonctionnalité doit être accompagnée de ses tests correspondants.

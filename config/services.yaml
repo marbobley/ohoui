@@ -19,10 +19,16 @@ services:
             string $solrPath: '%env(SOLR_PATH)%'
             string $solrCore: '%env(SOLR_CORE)%'
 
+    App\Application\Service\:
+        resource: '../src/Application/Service/'
+        public: true
+
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'
+        exclude:
+            - '../src/Application/Service/'
 
     App\Domain\Repository\SearchEngineInterface: '@App\Infrastructure\Solr\SolrSearchEngine'
 
