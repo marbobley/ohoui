@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Service\SolrClientService;
+use App\Application\Service\IndexUseCase;
+use App\Domain\Model\Document;
 use LogicException;
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -19,11 +20,11 @@ use function sprintf;
 class IndexSampleCommand extends Command
 {
     /**
-     * @param SolrClientService $solrClient
+     * @param IndexUseCase $indexUseCase
      * @throws LogicException
      */
     public function __construct(
-        private readonly SolrClientService $solrClient,
+        private readonly IndexUseCase $indexUseCase,
     ) {
         parent::__construct();
     }
@@ -69,7 +70,15 @@ class IndexSampleCommand extends Command
         ];
 
         foreach ($samples as $sample) {
-            $this->solrClient->indexDocument($sample);
+            $document = new Document(
+                $sample['id'],
+                $sample['title'],
+                $sample['url'],
+                $sample['content'],
+                $sample['language'],
+                $sample['domain'],
+            );
+            $this->indexUseCase->execute($document);
             $io->note(sprintf('Indexé : %s', $sample['title']));
         }
 
