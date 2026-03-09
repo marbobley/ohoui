@@ -35,7 +35,7 @@ jobs:
                 image: solr:9
                 ports:
                     - 8983:8983
-                command: solr-precreate owi_french
+                options: "--health-cmd 'curl -f http://localhost:8983/solr/admin/info/system' --health-interval 10s --health-timeout 5s --health-retries 5"
         steps:
             - uses: shivammathur/setup-php@v2
               with:
@@ -52,6 +52,9 @@ jobs:
               run: vendor/bin/mago analyze
             - name: Install Importmap
               run: php bin/console importmap:install
+            - name: Create Solr Core
+              run: |
+                  docker exec -u solr $(docker ps --filter "ancestor=solr:9" --format "{{.ID}}") solr-create -c owi_french
             - name: Create Database and Schema
               env:
                   DATABASE_URL: postgresql://root:password@127.0.0.1:5432/blogSymfony_test?serverVersion=16&charset=utf8
