@@ -41,12 +41,51 @@ final class SolrClientServiceTest extends TestCase
     public function testSearchCallsClientSelect(): void
     {
         $queryStr = 'test query';
+        $escapedQuery = 'test\ query';
+        $formattedQuery = 'title:test\ query OR content:test\ query';
+
+        $selectMock = $this->createMock(SelectQuery::class);
+        $helperMock = $this->createMock(\Solarium\Core\Query\Helper::class);
+        $resultStub = $this->createStub(SelectResult::class);
+
+        $this->clientMock->expects($this->once())
+            ->method('createSelect')
+            ->willReturn($selectMock);
+
+        $selectMock->expects($this->once())
+            ->method('getHelper')
+            ->willReturn($helperMock);
+
+        $helperMock->expects($this->once())
+            ->method('escapeTerm')
+            ->with($queryStr)
+            ->willReturn($escapedQuery);
+
+        $selectMock->expects($this->once())
+            ->method('setQuery')
+            ->with($formattedQuery);
+
+        $this->clientMock->expects($this->once())
+            ->method('select')
+            ->with($selectMock)
+            ->willReturn($resultStub);
+
+        $result = $this->service->search($queryStr);
+        $this->assertSame($resultStub, $result);
+    }
+
+    public function testSearchWithExplicitFieldDoesNotFormatQuery(): void
+    {
+        $queryStr = 'title:specific';
         $selectMock = $this->createMock(SelectQuery::class);
         $resultStub = $this->createStub(SelectResult::class);
 
         $this->clientMock->expects($this->once())
             ->method('createSelect')
             ->willReturn($selectMock);
+
+        $selectMock->expects($this->never())
+            ->method('getHelper');
 
         $selectMock->expects($this->once())
             ->method('setQuery')
