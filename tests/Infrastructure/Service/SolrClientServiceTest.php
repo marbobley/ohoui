@@ -38,11 +38,6 @@ final class SolrClientServiceTest extends TestCase
         $property->setValue($this->service, $this->clientMock);
     }
 
-    public function testGetClientReturnsSolariumClient(): void
-    {
-        $this->assertSame($this->clientMock, $this->service->getClient());
-    }
-
     public function testSearchCallsClientSelect(): void
     {
         $queryStr = 'test query';

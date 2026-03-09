@@ -6,7 +6,7 @@ namespace App\Tests\Infrastructure\Solr;
 
 use App\Domain\Model\Document;
 use App\Infrastructure\Solr\SolrSearchEngine;
-use App\Service\SolrClientService;
+use App\Service\SolrClientServiceInterface;
 use PHPUnit\Framework\TestCase;
 use Solarium\QueryType\Select\Result\Result;
 
@@ -17,7 +17,7 @@ class SolrSearchEngineTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->solrClientServiceMock = $this->createMock(SolrClientService::class);
+        $this->solrClientServiceMock = $this->createMock(SolrClientServiceInterface::class);
         $this->solrSearchEngine = new SolrSearchEngine($this->solrClientServiceMock);
     }
 

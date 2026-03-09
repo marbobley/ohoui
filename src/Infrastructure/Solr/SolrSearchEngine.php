@@ -6,12 +6,12 @@ namespace App\Infrastructure\Solr;
 
 use App\Domain\Model\Document;
 use App\Domain\Repository\SearchEngineInterface;
-use App\Service\SolrClientService;
+use App\Service\SolrClientServiceInterface;
 
-class SolrSearchEngine implements SearchEngineInterface
+readonly class SolrSearchEngine implements SearchEngineInterface
 {
     public function __construct(
-        private readonly SolrClientService $solrClientService,
+        private SolrClientServiceInterface $solrClientService,
     ) {}
 
     #[\Override]

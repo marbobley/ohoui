@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Override;
 use Solarium\Client;
 use Solarium\Core\Client\Adapter\AdapterInterface;
-use Solarium\Core\Query\Result\ResultInterface;
 use Solarium\QueryType\Select\Result\Result;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class SolrClientService
+class SolrClientService implements SolrClientServiceInterface
 {
     private Client $client;
 
@@ -38,11 +38,7 @@ class SolrClientService
         $this->client = new Client($adapter, $eventDispatcher, $options);
     }
 
-    public function getClient(): Client
-    {
-        return $this->client;
-    }
-
+    #[Override]
     public function search(string $query, int $start = 0, int $rows = 10): Result
     {
         /** @var \Solarium\QueryType\Select\Query\Query $select */
@@ -51,15 +47,14 @@ class SolrClientService
         $select->setStart($start);
         $select->setRows($rows);
 
-        /** @var Result $result */
-        $result = $this->client->select($select);
-
-        return $result;
+        /** @var Result */
+        return $this->client->select($select);
     }
 
     /**
      * @param array<string, mixed> $data
      */
+    #[Override]
     public function indexDocument(array $data): void
     {
         /** @var Query $update */

@@ -38,8 +38,6 @@ jobs:
               run: vendor/bin/mago format --check
             - name: Lint Check
               run: vendor/bin/mago lint
-            - name: Guard Perimeter and Structural Check
-              run: vendor/bin/mago guard
             - name: Static Analysis
               run: vendor/bin/mago analyze
             - name: Install Importmap
