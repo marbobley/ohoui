@@ -58,7 +58,7 @@ jobs:
               run: php bin/console importmap:install
             - name: Create Solr Core
               run: |
-                  docker exec -u solr $(docker ps --filter "ancestor=solr:9" --format "{{.ID}}") solr-create -c owi_french
+                  docker exec -u solr $(docker ps --filter "ancestor=solr:9" --format "{{.ID}}") solr create -c owi_french
             - name: Create Database and Schema
               env:
                   DATABASE_URL: postgresql://root:password@127.0.0.1:5432/blogSymfony_test?serverVersion=16&charset=utf8
