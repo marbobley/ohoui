@@ -19,15 +19,15 @@
     {% if results is not null %}
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <p class="text-muted">{{ results.getNumFound() }} résultats trouvés</p>
+                <p class="text-muted">{{ results|length }} résultats trouvés</p>
                 <hr>
                 {% for doc in results %}
                     <div class="mb-4">
-                        <h3 class="h5 mb-1"><a href="{{ doc.url }}">{{ doc.title }}</a></h3>
-                        <div class="text-success small mb-1">{{ doc.url }}</div>
-                        <p class="mb-0">{{ doc.content|default('')|u.truncate(200, '...') }}</p>
-                        <span class="badge bg-secondary">{{ doc.language }}</span>
-                        <span class="badge bg-info">{{ doc.domain }}</span>
+                        <h3 class="h5 mb-1"><a href="{{ doc.getUrl() }}">{{ doc.getTitle() }}</a></h3>
+                        <div class="text-success small mb-1">{{ doc.getUrl() }}</div>
+                        <p class="mb-0">{{ doc.getContent()|default('')|u.truncate(200, '...') }}</p>
+                        <span class="badge bg-secondary">{{ doc.getLanguage() }}</span>
+                        <span class="badge bg-info">{{ doc.getDomain() }}</span>
                     </div>
                 {% else %}
                     <p>Aucun résultat trouvé pour votre recherche.</p>

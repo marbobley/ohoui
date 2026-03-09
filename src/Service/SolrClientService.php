@@ -4,25 +4,29 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Override;
 use Solarium\Client;
-use Solarium\Core\Client\Adapter\Curl;
-use Solarium\Core\Query\Result\ResultInterface;
+use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\QueryType\Select\Result\Result;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class SolrClientService
+class SolrClientService implements SolrClientServiceInterface
 {
     private Client $client;
 
-    public function __construct(string $solrHost, int $solrPort, string $solrPath, string $solrCore)
-    {
-        $adapter = new Curl();
-        $eventDispatcher = new EventDispatcher();
+    public function __construct(
+        AdapterInterface $adapter,
+        EventDispatcherInterface $eventDispatcher,
+        string $solrHost,
+        int $solrPort,
+        string $solrPath,
+        string $solrCore,
+    ) {
         $options = [
             'endpoint' => [
-                'localhost' => [
+                'main' => [
                     'host' => $solrHost,
                     'port' => $solrPort,
                     'path' => $solrPath,
@@ -34,12 +38,8 @@ class SolrClientService
         $this->client = new Client($adapter, $eventDispatcher, $options);
     }
 
-    public function getClient(): Client
-    {
-        return $this->client;
-    }
-
-    public function search(string $query, int $start = 0, int $rows = 10): ResultInterface
+    #[Override]
+    public function search(string $query, int $start = 0, int $rows = 10): Result
     {
         /** @var \Solarium\QueryType\Select\Query\Query $select */
         $select = $this->client->createSelect();
@@ -47,13 +47,14 @@ class SolrClientService
         $select->setStart($start);
         $select->setRows($rows);
 
-        /** @var Result $result */
+        /** @var Result */
         return $this->client->select($select);
     }
 
     /**
      * @param array<string, mixed> $data
      */
+    #[Override]
     public function indexDocument(array $data): void
     {
         /** @var Query $update */
