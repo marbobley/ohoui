@@ -24,9 +24,10 @@ final class HomeControllerTest extends WebTestCase
         // ou avec un moteur de recherche mocké si possible.
         // Ici, on teste l'interface utilisateur.
 
-        $client->request('GET', '/?q=mot_cle_inexistant_'.uniqid());
+        $client->request('GET', '/?q=mot_cle_inexistant_' . \uniqid());
 
         $this->assertResponseIsSuccessful();
+
         // On s'attend à voir le message d'absence de résultats ou l'invite à indexer si Solr ne répond pas (ou répond vide)
         // Note: Dans un test fonctionnel Symfony, SolrSearchEngine sera appelé.
         // Si SOLR_HOST n'est pas accessible, cela pourrait échouer.

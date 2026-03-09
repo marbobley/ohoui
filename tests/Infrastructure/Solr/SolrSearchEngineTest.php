@@ -23,16 +23,10 @@ class SolrSearchEngineTest extends TestCase
 
     public function testIndex(): void
     {
-        $document = new Document(
-            '1',
-            'Test Title',
-            'https://test.com',
-            'Test Content',
-            'fr',
-            'test.com'
-        );
+        $document = new Document('1', 'Test Title', 'https://test.com', 'Test Content', 'fr', 'test.com');
 
-        $this->solrClientServiceMock->expects($this->once())
+        $this->solrClientServiceMock
+            ->expects($this->once())
             ->method('indexDocument')
             ->with([
                 'id' => '1',
@@ -51,7 +45,8 @@ class SolrSearchEngineTest extends TestCase
         $query = 'test';
         $resultStub = $this->createStub(Result::class);
 
-        $this->solrClientServiceMock->expects($this->once())
+        $this->solrClientServiceMock
+            ->expects($this->once())
             ->method('search')
             ->with($query)
             ->willReturn($resultStub);
@@ -61,6 +56,6 @@ class SolrSearchEngineTest extends TestCase
 
         $results = $this->solrSearchEngine->search($query);
 
-        $this->assertIsArray($results);
+        static::assertIsArray($results);
     }
 }

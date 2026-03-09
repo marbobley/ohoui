@@ -3,9 +3,8 @@ php-version = "8.4"
 [source]
 paths = [
   "src",
-  # "tests/",
-  # "importmap.php",
-  # "migrations/",
+  "importmap.php",
+  "migrations/",
 ]
 includes = ["vendor"]
 excludes = ["src/Kernel.php", "src/DataFixtures"]
