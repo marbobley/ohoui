@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="Mago">
+    <MagoSettings>
+      <mago_by_interpreter asDefaultInterpreter="true" interpreter_id="dea00872-ed39-4df2-95ba-9d31955ae556" />
+    </MagoSettings>
+  </component>
   <component name="MessDetectorOptionsConfiguration">
     <option name="transferred" value="true" />
   </component>
