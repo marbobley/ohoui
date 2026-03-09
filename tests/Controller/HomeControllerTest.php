@@ -20,16 +20,22 @@ final class HomeControllerTest extends WebTestCase
     public function testSearchWithNoResultsDisplaysMessage(): void
     {
         $client = static::createClient();
-        // Simuler une recherche qui n'aura probablement pas de résultats dans un environnement de test sans Solr réel configuré
-        // ou avec un moteur de recherche mocké si possible.
-        // Ici, on teste l'interface utilisateur.
+
+        // On indexe au moins un document pour initialiser les champs dans Solr (dynamic fields)
+        // et éviter l'erreur "undefined field title" si le core est vide.
+        $container = static::getContainer();
+        $indexUseCase = $container->get(\App\Application\Service\IndexUseCase::class);
+        $indexUseCase->execute(new \App\Domain\Model\Document(
+            'init-test',
+            'Initialisation Solr',
+            'https://test.com',
+            'Contenu initial pour créer les champs',
+            'fr',
+            'test.com'
+        ));
 
         $client->request('GET', '/?q=mot_cle_inexistant_' . \uniqid());
 
         $this->assertResponseIsSuccessful();
-
-        // On s'attend à voir le message d'absence de résultats ou l'invite à indexer si Solr ne répond pas (ou répond vide)
-        // Note: Dans un test fonctionnel Symfony, SolrSearchEngine sera appelé.
-        // Si SOLR_HOST n'est pas accessible, cela pourrait échouer.
     }
 }

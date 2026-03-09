@@ -35,7 +35,7 @@ final class SolrClientServiceTest extends TestCase
     {
         $queryStr = 'test query';
         $escapedQuery = 'test\ query';
-        $formattedQuery = 'title:test\ query OR content:test\ query';
+        $formattedQuery = '"test\ query"';
 
         $selectMock = $this->createMock(SelectQuery::class);
         $helperMock = $this->createMock(\Solarium\Core\Query\Helper::class);
@@ -51,6 +51,8 @@ final class SolrClientServiceTest extends TestCase
         $helperMock->expects($this->once())->method('escapeTerm')->with($queryStr)->willReturn($escapedQuery);
 
         $selectMock->expects($this->once())->method('setQuery')->with($formattedQuery);
+        $selectMock->expects($this->once())->method('setQueryDefaultField')->with('title');
+        $selectMock->expects($this->once())->method('setQueryDefaultOperator')->with('OR');
 
         $this->clientMock
             ->expects($this->once())
