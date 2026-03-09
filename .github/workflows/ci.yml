@@ -54,6 +54,8 @@ jobs:
               run: vendor/bin/mago lint
             - name: Static Analysis
               run: vendor/bin/mago analyze
+            - name: Architecture Guard
+              run: vendor/bin/mago guard
             - name: Install Importmap
               run: php bin/console importmap:install
             - name: Create Solr Core
