@@ -35,9 +35,7 @@ jobs:
                 image: solr:9
                 ports:
                     - 8983:8983
-                command:
-                    - solr-precreate
-                    - owi_french
+                command: solr-precreate owi_french
         steps:
             - uses: shivammathur/setup-php@v2
               with:
