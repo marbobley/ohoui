@@ -17,16 +17,16 @@ final class IndexUseCaseIntegrationTest extends KernelTestCase
 
         /** @var IndexUseCase $indexUseCase */
         $indexUseCase = $container->get(IndexUseCase::class);
-        $this->assertInstanceOf(IndexUseCase::class, $indexUseCase);
+        static::assertInstanceOf(IndexUseCase::class, $indexUseCase);
 
-        $id = 'test-id-' . uniqid();
+        $id = 'test-id-' . \uniqid();
         $document = new Document(
             $id,
             'Test Indexation Réelle',
             'https://test-integration.com',
             'Contenu de test pour intégration réelle',
             'fr',
-            'test-integration.com'
+            'test-integration.com',
         );
 
         // Exécution du use case d'indexation (appel réel à Solr)
@@ -36,7 +36,7 @@ final class IndexUseCaseIntegrationTest extends KernelTestCase
         $searchUseCase = $container->get(\App\Application\Service\SearchUseCase::class);
         $results = $searchUseCase->execute('id:' . $id);
 
-        $this->assertNotEmpty($results, 'Le document devrait être trouvé dans Solr après indexation.');
-        $this->assertSame('Test Indexation Réelle', $results[0]->getTitle());
+        static::assertNotEmpty($results, 'Le document devrait être trouvé dans Solr après indexation.');
+        static::assertSame('Test Indexation Réelle', $results[0]->getTitle());
     }
 }

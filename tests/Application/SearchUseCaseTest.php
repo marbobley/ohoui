@@ -15,18 +15,15 @@ class SearchUseCaseTest extends TestCase
     {
         $query = 'test';
         $expectedResults = [
-            new Document('1', 'Title', 'Url', 'Content', 'fr', 'domain.com')
+            new Document('1', 'Title', 'Url', 'Content', 'fr', 'domain.com'),
         ];
 
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
-        $searchEngineMock->expects($this->once())
-            ->method('search')
-            ->with($query)
-            ->willReturn($expectedResults);
+        $searchEngineMock->expects($this->once())->method('search')->with($query)->willReturn($expectedResults);
 
         $useCase = new SearchUseCase($searchEngineMock);
         $results = $useCase->execute($query);
 
-        $this->assertSame($expectedResults, $results);
+        static::assertSame($expectedResults, $results);
     }
 }

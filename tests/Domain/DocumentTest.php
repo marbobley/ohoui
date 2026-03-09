@@ -20,11 +20,11 @@ class DocumentTest extends TestCase
 
         $document = new Document($id, $title, $url, $content, $language, $domain);
 
-        $this->assertSame($id, $document->getId());
-        $this->assertSame($title, $document->getTitle());
-        $this->assertSame($url, $document->getUrl());
-        $this->assertSame($content, $document->getContent());
-        $this->assertSame($language, $document->getLanguage());
-        $this->assertSame($domain, $document->getDomain());
+        static::assertSame($id, $document->getId());
+        static::assertSame($title, $document->getTitle());
+        static::assertSame($url, $document->getUrl());
+        static::assertSame($content, $document->getContent());
+        static::assertSame($language, $document->getLanguage());
+        static::assertSame($domain, $document->getDomain());
     }
 }
