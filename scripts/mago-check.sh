@@ -18,7 +18,11 @@ function run_mago() {
     else
         echo -e "\n--- Running Mago ${cmd^} ---"
     fi
-    vendor/bin/mago $cmd $extra_args 2>&1 | grep -v "INFO" || exit 1
+    vendor/bin/mago $cmd $extra_args 2>&1 | grep -v "INFO"
+    local status=${PIPESTATUS[0]}
+    if [ $status -ne 0 ]; then
+        exit $status
+    fi
 }
 
 run_mago "lint"

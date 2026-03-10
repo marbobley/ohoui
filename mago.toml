@@ -6,7 +6,8 @@ paths = [
   "importmap.php",
   "migrations/",
 ]
-excludes = ["src/Kernel.php", "src/DataFixtures", "vendor"]
+includes = ["vendor"]
+excludes = ["src/Kernel.php", "src/DataFixtures"]
 
 [formatter]
 print-width = 120

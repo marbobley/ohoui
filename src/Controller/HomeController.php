@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Application\Service\SearchUseCase;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
+use Symfony\Component\HttpFoundation\Exception\UnexpectedValueException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,12 +19,18 @@ final class HomeController extends AbstractController
      * @param SearchUseCase $searchUseCase
      * @return Response
      * @throws BadRequestException
+     * @throws UnexpectedValueException
      */
     #[Route('/', name: 'app_home')]
     public function index(Request $request, SearchUseCase $searchUseCase): Response
     {
-        $query = $request->query->get('q', '*:*');
-        $page = $request->query->getInt('page', 1);
+        try {
+            $query = $request->query->get('q', '*:*');
+            $page = $request->query->getInt('page', 1);
+        } catch (UnexpectedValueException|BadRequestException $e) {
+            throw new BadRequestException($e->getMessage(), previous: $e);
+        }
+
         $limit = 10;
         $offset = ($page - 1) * $limit;
 
