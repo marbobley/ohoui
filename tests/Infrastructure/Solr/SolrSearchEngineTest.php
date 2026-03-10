@@ -7,13 +7,15 @@ namespace App\Tests\Infrastructure\Solr;
 use App\Domain\Model\Document;
 use App\Infrastructure\Solr\SolrSearchEngine;
 use App\Service\SolrClientServiceInterface;
+use App\Tests\Util\DocumentFactory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Solarium\QueryType\Select\Result\Result;
 
 class SolrSearchEngineTest extends TestCase
 {
-    private $solrClientServiceMock;
-    private $solrSearchEngine;
+    private SolrClientServiceInterface&MockObject $solrClientServiceMock;
+    private SolrSearchEngine $solrSearchEngine;
 
     protected function setUp(): void
     {
@@ -21,9 +23,16 @@ class SolrSearchEngineTest extends TestCase
         $this->solrSearchEngine = new SolrSearchEngine($this->solrClientServiceMock);
     }
 
-    public function testIndex(): void
+    public function testIndexDelegatesToClientService(): void
     {
-        $document = new Document('1', 'Test Title', 'https://test.com', 'Test Content', 'fr', 'test.com');
+        $document = DocumentFactory::create(
+            id: '1',
+            title: 'Test Title',
+            url: 'https://test.com',
+            content: 'Test Content',
+            language: 'fr',
+            domain: 'test.com'
+        );
 
         $this->solrClientServiceMock
             ->expects($this->once())
@@ -40,7 +49,7 @@ class SolrSearchEngineTest extends TestCase
         $this->solrSearchEngine->index($document);
     }
 
-    public function testSearch(): void
+    public function testSearchDelegatesToClientService(): void
     {
         $query = 'test';
         $resultStub = $this->createStub(Result::class);
@@ -51,11 +60,11 @@ class SolrSearchEngineTest extends TestCase
             ->with($query)
             ->willReturn($resultStub);
 
-        // Simulation d'un itérateur vide pour les résultats
         $resultStub->method('getIterator')->willReturn(new \ArrayIterator([]));
 
         $results = $this->solrSearchEngine->search($query);
 
         static::assertIsArray($results);
+        static::assertEmpty($results);
     }
 }

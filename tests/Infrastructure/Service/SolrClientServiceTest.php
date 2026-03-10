@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Infrastructure\Service;
 
 use App\Service\SolrClientService;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Solarium\Client;
 use Solarium\Core\Client\Adapter\AdapterInterface;
@@ -16,7 +17,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 final class SolrClientServiceTest extends TestCase
 {
     private SolrClientService $service;
-    private Client $clientMock;
+    private Client&MockObject $clientMock;
 
     protected function setUp(): void
     {
