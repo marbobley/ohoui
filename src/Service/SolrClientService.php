@@ -47,9 +47,8 @@ class SolrClientService implements SolrClientServiceInterface
         if (!\str_contains($query, ':')) {
             $helper = $select->getHelper();
             $escapedQuery = $helper->escapeTerm($query);
-            $query = \sprintf('"%1$s"', $escapedQuery);
-            $select->setQueryDefaultField('title');
-            $select->setQueryDefaultOperator('OR');
+            // On cherche dans le titre avec un boost de 2.0 et dans le contenu par défaut
+            $query = \sprintf('title:"%1$s"^2.0 OR content:"%1$s"', $escapedQuery);
         }
 
         $select->setQuery($query);

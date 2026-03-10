@@ -71,6 +71,31 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
         SearchUseCaseIntegrationTest::assertTrue(array_any($results->getDocuments(), fn($d) => $d->getId() === $doc->getId()));
     }
 
+    public function testSearchRankingBoostsTitle(): void
+    {
+        // Document avec le mot clé dans le contenu
+        $docContent = DocumentFactory::create(
+            id: 'rank-1',
+            title: 'Un article quelconque',
+            content: 'Ici on parle de BoostKeyword et de ses nouveautés.'
+        );
+        // Document avec le mot clé dans le titre
+        $docTitle = DocumentFactory::create(
+            id: 'rank-2',
+            title: 'Le guide complet de BoostKeyword',
+            content: 'Un guide sur la programmation.'
+        );
+
+        $this->indexUseCase->execute($docContent);
+        $this->indexUseCase->execute($docTitle);
+
+        $results = $this->searchUseCase->execute('BoostKeyword');
+
+        SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(2, count($results->getDocuments()));
+        // Le document avec le mot-clé dans le titre doit être en première position grâce au boost
+        SearchUseCaseIntegrationTest::assertSame($docTitle->getId(), $results->getDocuments()[0]->getId());
+    }
+
     public function testPagination(): void
     {
         // Indexer plusieurs documents
