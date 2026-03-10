@@ -23,15 +23,25 @@ final class HomeController extends AbstractController
     public function index(Request $request, SearchUseCase $searchUseCase): Response
     {
         $query = $request->query->get('q', '*:*');
+        $page = $request->query->getInt('page', 1);
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        if ($page < 1) {
+            $page = 1;
+            $offset = 0;
+        }
+
         $results = null;
 
         if ($query !== '*:*') {
-            $results = $searchUseCase->execute($query);
+            $results = $searchUseCase->execute($query, $offset, $limit);
         }
 
         return $this->render('home/index.html.twig', [
             'query' => $query === '*:*' ? '' : $query,
             'results' => $results,
+            'currentPage' => $page,
         ]);
     }
 }

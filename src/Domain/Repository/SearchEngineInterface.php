@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Repository;
 
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchResult;
 
 interface SearchEngineInterface
 {
     public function index(Document $document): void;
 
-    /**
-     * @return Document[]
-     */
-    public function search(string $query): array;
+    public function search(string $query, int $offset = 0, int $limit = 10): SearchResult;
 }

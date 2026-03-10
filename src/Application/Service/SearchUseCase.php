@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Service;
 
-use App\Domain\Model\Document;
+use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 
 final readonly class SearchUseCase
@@ -13,11 +13,8 @@ final readonly class SearchUseCase
         private SearchEngineInterface $searchEngine,
     ) {}
 
-    /**
-     * @return Document[]
-     */
-    public function execute(string $query): array
+    public function execute(string $query, int $offset = 0, int $limit = 10): SearchResult
     {
-        return $this->searchEngine->search($query);
+        return $this->searchEngine->search($query, $offset, $limit);
     }
 }
