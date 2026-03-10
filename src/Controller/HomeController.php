@@ -27,6 +27,8 @@ final class HomeController extends AbstractController
         try {
             $query = $request->query->get('q', '*:*');
             $page = $request->query->getInt('page', 1);
+            /** @var array<string, string> $filters */
+            $filters = $request->query->all('filters');
         } catch (UnexpectedValueException|BadRequestException $e) {
             throw new BadRequestException($e->getMessage(), previous: $e);
         }
@@ -42,13 +44,14 @@ final class HomeController extends AbstractController
         $results = null;
 
         if ($query !== '*:*') {
-            $results = $searchUseCase->execute($query, $offset, $limit);
+            $results = $searchUseCase->execute($query, $offset, $limit, $filters);
         }
 
         return $this->render('home/index.html.twig', [
             'query' => $query === '*:*' ? '' : $query,
             'results' => $results,
             'currentPage' => $page,
+            'activeFilters' => $filters,
         ]);
     }
 }

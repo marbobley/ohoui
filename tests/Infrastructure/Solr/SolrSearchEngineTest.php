@@ -9,6 +9,8 @@ use App\Service\SolrClientServiceInterface;
 use App\Tests\Util\DocumentFactory;
 use ArrayIterator;use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Solarium\Component\Result\FacetSet;
+use Solarium\Component\Result\Facet\Field as FacetField;
 use Solarium\QueryType\Select\Result\Result;
 
 class SolrSearchEngineTest extends TestCase
@@ -64,5 +66,39 @@ class SolrSearchEngineTest extends TestCase
 
         SolrSearchEngineTest::assertEmpty($results->getDocuments());
         SolrSearchEngineTest::assertEquals(0, $results->getTotalCount());
+    }
+    public function testSearchMapsFacets(): void
+    {
+        $query = 'test';
+        $resultStub = $this->createStub(Result::class);
+        $facetSetStub = $this->createStub(FacetSet::class);
+        $facetFieldStub = $this->createStub(FacetField::class);
+
+        $this->solrClientServiceMock
+            ->method('search')
+            ->willReturn($resultStub);
+
+        $resultStub->method('getIterator')->willReturn(new ArrayIterator([]));
+        $resultStub->method('getNumFound')->willReturn(0);
+        $resultStub->method('getFacetSet')->willReturn($facetSetStub);
+
+        $facetSetStub->method('getIterator')->willReturn(new ArrayIterator([
+            'language' => $facetFieldStub,
+        ]));
+
+        $facetFieldStub->method('getIterator')->willReturn(new ArrayIterator([
+            'fr' => 5,
+            'en' => 2,
+        ]));
+
+        $results = $this->solrSearchEngine->search($query);
+
+        self::assertCount(1, $results->getFacets());
+        $facet = $results->getFacets()[0];
+        self::assertSame('language', $facet->getName());
+        self::assertSame('Langue', $facet->getLabel());
+        self::assertCount(2, $facet->getValues());
+        self::assertSame('fr', $facet->getValues()[0]->getValue());
+        self::assertSame(5, $facet->getValues()[0]->getCount());
     }
 }

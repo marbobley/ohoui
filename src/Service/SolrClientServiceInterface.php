@@ -8,7 +8,10 @@ use Solarium\QueryType\Select\Result\Result;
 
 interface SolrClientServiceInterface
 {
-    public function search(string $query, int $start = 0, int $rows = 10): Result;
+    /**
+     * @param array<string, string> $filters
+     */
+    public function search(string $query, int $start = 0, int $rows = 10, array $filters = []): Result;
 
     /**
      * @param array<string, mixed> $data

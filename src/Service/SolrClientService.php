@@ -39,10 +39,19 @@ class SolrClientService implements SolrClientServiceInterface
     }
 
     #[Override]
-    public function search(string $query, int $start = 0, int $rows = 10): Result
+    public function search(string $query, int $start = 0, int $rows = 10, array $filters = []): Result
     {
         /** @var \Solarium\QueryType\Select\Query\Query $select */
         $select = $this->client->createSelect();
+
+        $facetSet = $select->getFacetSet();
+        /** @var \Solarium\Component\Facet\Field $languageFacet */
+        $languageFacet = $facetSet->createFacetField('language');
+        $languageFacet->setField('language');
+
+        /** @var \Solarium\Component\Facet\Field $domainFacet */
+        $domainFacet = $facetSet->createFacetField('domain');
+        $domainFacet->setField('domain');
 
         if (!\str_contains($query, ':')) {
             $helper = $select->getHelper();
@@ -52,6 +61,11 @@ class SolrClientService implements SolrClientServiceInterface
         }
 
         $select->setQuery($query);
+
+        foreach ($filters as $field => $value) {
+            $select->createFilterQuery($field)->setQuery(\sprintf('%s:%s', $field, $value));
+        }
+
         $select->setStart($start);
         $select->setRows($rows);
 
