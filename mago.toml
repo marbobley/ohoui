@@ -35,45 +35,60 @@ allow-possibly-undefined-array-keys = true
 perform-heuristic-checks = true
 
 [guard]
+# mode = "default" # Optionnel ou incorrect selon l'erreur
+
 [guard.perimeter]
-layers = { domain = ["App\\Domain\\"], application = ["App\\Application\\"], infrastructure = ["App\\Infrastructure\\", "App\\Service\\", "App\\Command\\"], ui = ["App\\Controller\\", "App\\UserInterface\\"] }
+
+# Définit les couches architecturales
+layering = [
+    "App\\Domain\\",
+    "App\\Application\\",
+    "App\\Infrastructure\\",
+    "App\\Service\\",
+    "App\\Command\\",
+    "App\\Controller\\"
+]
+
+# Crée des alias réutilisables pour les groupes de namespaces.
+[guard.perimeter.layers]
+core = ["Psr\\", "Override", "LogicException", "RuntimeException", "Exception", "sprintf", "str_contains", "is_array", "reset", "count"]
+framework = ["Symfony\\"]
+persistence = ["Doctrine\\", "Solarium\\"]
 
 [[guard.perimeter.rules]]
 namespace = "App\\"
-permit = ["App\\", "Symfony\\", "Psr\\", "Doctrine\\", "Solarium\\", "Override", "LogicException", "RuntimeException", "Exception", "sprintf", "str_contains", "is_array", "reset", "count"]
+permit = ["App\\", "@layer:framework", "@layer:core", "@layer:persistence"]
 
 [[guard.perimeter.rules]]
 namespace = "App\\Domain\\"
-permit = ["App\\Domain\\", "Symfony\\", "Psr\\", "Override", "LogicException", "RuntimeException", "Exception"]
+permit = ["App\\Domain\\", "Symfony\\Component\\Uid\\", "Symfony\\Contracts\\", "@layer:core"]
 
 [[guard.perimeter.rules]]
 namespace = "App\\Application\\"
-permit = ["App\\Domain\\", "App\\Application\\", "Symfony\\", "Psr\\", "Override"]
+permit = ["App\\Domain\\", "App\\Application\\", "@layer:framework", "@layer:core"]
 
 [[guard.perimeter.rules]]
 namespace = "App\\Infrastructure\\"
-permit = ["App\\Domain\\", "App\\Application\\", "App\\Infrastructure\\", "App\\Service\\", "Symfony\\", "Psr\\", "Solarium\\", "Override", "is_array", "reset"]
+permit = ["App\\Domain\\", "App\\Application\\", "App\\Infrastructure\\", "App\\Service\\", "@layer:framework", "@layer:core", "@layer:persistence"]
 
 [[guard.perimeter.rules]]
 namespace = "App\\Service\\"
-permit = ["App\\Domain\\", "App\\Application\\", "App\\Service\\", "Symfony\\", "Psr\\", "Solarium\\", "Override", "str_contains", "sprintf"]
+permit = ["App\\Domain\\", "App\\Application\\", "App\\Service\\", "@layer:framework", "@layer:core", "Solarium\\"]
 
 [[guard.perimeter.rules]]
 namespace = "App\\Command\\"
-permit = ["App\\Domain\\", "App\\Application\\", "App\\Infrastructure\\", "App\\Service\\", "App\\Command\\", "Symfony\\", "Psr\\", "LogicException", "sprintf"]
+permit = ["App\\Domain\\", "App\\Application\\", "App\\Infrastructure\\", "App\\Service\\", "App\\Command\\", "@layer:framework", "@layer:core"]
 
 [[guard.perimeter.rules]]
 namespace = "App\\Controller\\"
-permit = ["App\\Domain\\", "App\\Application\\", "App\\Controller\\", "Symfony\\", "Psr\\", "Override"]
+permit = ["App\\Domain\\", "App\\Application\\", "App\\Controller\\", "@layer:framework", "@layer:core"]
 
-[[guard.perimeter.rules]]
-namespace = "App\\UserInterface\\"
-permit = ["App\\Domain\\", "App\\Application\\", "App\\UserInterface\\", "Symfony\\", "Psr\\", "Override"]
 
 [guard.structural]
 [[guard.structural.rules]]
 on = "App\\Domain\\Model\\**"
 must-be-final = true
+must-be-readonly = true
 
 [[guard.structural.rules]]
 on = "App\\Application\\Service\\**"

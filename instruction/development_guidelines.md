@@ -21,7 +21,11 @@ Le code source dans `src/` doit être organisé comme suit :
 - `Domain/` : Contient les entités métier, les objets de valeur (Value Objects), les exceptions métier et les interfaces des dépôts (Ports). Ne doit dépendre d'aucune bibliothèque externe (hormis PHP lui-même).
 - `Application/` : Contient les cas d'utilisation (Services applicatifs) qui orchestrent le domaine.
 - `Infrastructure/` : Contient les implémentations concrètes des interfaces du domaine (Adaptateurs) : persistence, clients API (Solr), etc.
-- `UserInterface/` : Contient les contrôleurs, les commandes console, etc.
+- `Controller/` : Contient les contrôleurs Web et API.
+- `Command/` : Contient les commandes console Symfony.
+- `Service/` : Services transversaux (SolrClient, etc.).
+- `Entity/` : Entités Doctrine (si présentes).
+- `Repository/` : Dépôts Doctrine (si présents).
 
 ## 3. Workflow TDD
 1. Créer un test unitaire ou d'intégration dans `tests/`.

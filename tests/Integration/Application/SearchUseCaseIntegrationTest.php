@@ -4,52 +4,67 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Application;
 
+use App\Application\Service\IndexUseCase;
 use App\Application\Service\SearchUseCase;
 use App\Domain\Model\Document;
+use App\Tests\Util\DocumentFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use function array_any;
 
 final class SearchUseCaseIntegrationTest extends KernelTestCase
 {
-    public function testSearchUseCaseIntegration(): void
+    private IndexUseCase $indexUseCase;
+    private SearchUseCase $searchUseCase;
+
+    protected function setUp(): void
     {
         self::bootKernel();
         $container = self::getContainer();
+        $this->indexUseCase = $container->get(IndexUseCase::class);
+        $this->searchUseCase = $container->get(SearchUseCase::class);
+    }
 
-        $indexUseCase = $container->get(\App\Application\Service\IndexUseCase::class);
-        $searchUseCase = $container->get(SearchUseCase::class);
-        static::assertInstanceOf(SearchUseCase::class, $searchUseCase);
+    public function testSearchByKeywordInTitle(): void
+    {
+        $doc = DocumentFactory::create(title:'Le Web Décentralisé en 2026');
+        $this->indexUseCase->execute($doc);
 
-        $id = 'test-search-' . \uniqid();
-        $document = new Document(
-            $id,
-            'Titre Recherche Intégration',
-            'https://search-integration.test',
-            'Contenu de test pour la recherche intégrée',
-            'fr',
-            'search-integration.test',
-        );
+        $results = $this->searchUseCase->execute('Décentralisé');
 
-        // On indexe un document pour être sûr de le trouver
-        $indexUseCase->execute($document);
+        SearchUseCaseIntegrationTest::assertNotEmpty($results);
+        SearchUseCaseIntegrationTest::assertSame('Le Web Décentralisé en 2026', $results[0]->getTitle());
+    }
 
-        // Exécution du use case de recherche
-        $results = $searchUseCase->execute('id:' . $id);
+    public function testSearchByLanguage(): void
+    {
+        $doc = DocumentFactory::create(language: 'en');
+        $this->indexUseCase->execute($doc);
 
-        // Vérifications
-        static::assertIsArray($results);
-        static::assertNotEmpty($results, 'La recherche devrait retourner au moins un résultat.');
+        $results = $this->searchUseCase->execute('language:en');
 
-        $foundDoc = null;
-        foreach ($results as $doc) {
-            if ($doc->getId() !== $id) {
-                continue;
-            }
+        SearchUseCaseIntegrationTest::assertNotEmpty($results);
+        SearchUseCaseIntegrationTest::assertContainsOnlyInstancesOf(Document::class, $results);
+    }
 
-            $foundDoc = $doc;
-            break;
-        }
+    public function testSearchById(): void
+    {
+        $doc = DocumentFactory::create();
+        $this->indexUseCase->execute($doc);
 
-        static::assertNotNull($foundDoc, 'Le document indexé devrait être trouvé.');
-        static::assertSame('Titre Recherche Intégration', $foundDoc->getTitle());
+        $results = $this->searchUseCase->execute('id:' . $doc->getId());
+
+        SearchUseCaseIntegrationTest::assertCount(1, $results);
+        SearchUseCaseIntegrationTest::assertSame($doc->getId(), $results[0]->getId());
+    }
+
+    public function testSearchWithSpecialCharactersInField(): void
+    {
+        $doc = DocumentFactory::create(title: 'Décentralisé');
+        $this->indexUseCase->execute($doc);
+
+        $results = $this->searchUseCase->execute('title:Décentralisé');
+
+        SearchUseCaseIntegrationTest::assertNotEmpty($results);
+        SearchUseCaseIntegrationTest::assertTrue(array_any($results, fn($d) => $d->getId() === $doc->getId()));
     }
 }

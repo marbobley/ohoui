@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Domain;
 
-use App\Domain\Model\Document;
+use App\Tests\Util\DocumentFactory;
 use PHPUnit\Framework\TestCase;
 
 class DocumentTest extends TestCase
 {
-    public function testItCanBeCreated(): void
+    public function testDocumentState(): void
     {
         $id = '123';
         $title = 'Titre de test';
@@ -18,7 +18,7 @@ class DocumentTest extends TestCase
         $language = 'fr';
         $domain = 'example.com';
 
-        $document = new Document($id, $title, $url, $content, $language, $domain);
+        $document = DocumentFactory::create($id, $title, $url, $content, $language, $domain);
 
         static::assertSame($id, $document->getId());
         static::assertSame($title, $document->getTitle());

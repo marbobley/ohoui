@@ -67,6 +67,38 @@ class IndexSampleCommand extends Command
                 'language' => 'fr',
                 'domain' => 'europa.eu',
             ],
+            [
+                'id' => '5',
+                'title' => 'PHP 8.4: New features and improvements',
+                'url' => 'https://php.net/releases/8.4',
+                'content' => 'PHP 8.4 is the latest version of the PHP language, bringing many new features like property hooks and asymmetric visibility.',
+                'language' => 'en',
+                'domain' => 'php.net',
+            ],
+            [
+                'id' => '6',
+                'title' => 'L\'intelligence artificielle au service de la recherche',
+                'url' => 'https://ia-search.test',
+                'content' => 'L\'IA transforme la manière dont nous recherchons l\'information sur le Web aujourd\'hui.',
+                'language' => 'fr',
+                'domain' => 'ia-search.test',
+            ],
+            [
+                'id' => '7',
+                'title' => 'The Open Web Index (OWI) Project',
+                'url' => 'https://owi.test',
+                'content' => 'The OWI project aims to provide a decentralized and open search index for the public interest.',
+                'language' => 'en',
+                'domain' => 'owi.test',
+            ],
+            [
+                'id' => '8',
+                'title' => 'Actualités technologiques en 2026',
+                'url' => 'https://tech-news.test',
+                'content' => 'Découvrez les dernières avancées technologiques de l\'année 2026, incluant le Web décentralisé.',
+                'language' => 'fr',
+                'domain' => 'tech-news.test',
+            ],
         ];
 
         foreach ($samples as $sample) {
