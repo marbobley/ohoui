@@ -46,8 +46,7 @@ layering = [
     "App\\Infrastructure\\",
     "App\\Service\\",
     "App\\Command\\",
-    "App\\Controller\\",
-    "App\\UserInterface\\"
+    "App\\Controller\\"
 ]
 
 # Crée des alias réutilisables pour les groupes de namespaces.
@@ -84,9 +83,6 @@ permit = ["App\\Domain\\", "App\\Application\\", "App\\Infrastructure\\", "App\\
 namespace = "App\\Controller\\"
 permit = ["App\\Domain\\", "App\\Application\\", "App\\Controller\\", "@layer:framework", "@layer:core"]
 
-[[guard.perimeter.rules]]
-namespace = "App\\UserInterface\\"
-permit = ["App\\Domain\\", "App\\Application\\", "App\\UserInterface\\", "@layer:framework", "@layer:core"]
 
 [guard.structural]
 [[guard.structural.rules]]

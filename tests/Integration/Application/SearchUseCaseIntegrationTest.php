@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration\Application;
 
+use App\Application\Service\IndexUseCase;
 use App\Application\Service\SearchUseCase;
 use App\Domain\Model\Document;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use function array_any;
+use function uniqid;
 
 final class SearchUseCaseIntegrationTest extends KernelTestCase
 {
@@ -15,41 +18,56 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
         self::bootKernel();
         $container = self::getContainer();
 
-        $indexUseCase = $container->get(\App\Application\Service\IndexUseCase::class);
+        $indexUseCase = $container->get(IndexUseCase::class);
         $searchUseCase = $container->get(SearchUseCase::class);
-        static::assertInstanceOf(SearchUseCase::class, $searchUseCase);
 
-        $id = 'test-search-' . \uniqid();
-        $document = new Document(
-            $id,
-            'Titre Recherche Intégration',
-            'https://search-integration.test',
-            'Contenu de test pour la recherche intégrée',
+        $id1 = 'test-search-1-' . uniqid();
+        $id2 = 'test-search-2-' . uniqid();
+
+        $doc1 = new Document(
+            $id1,
+            'Le Web Décentralisé en 2026',
+            'https://decentralized-web.test',
+            'L\'avenir du Web est décentralisé et ouvert à tous.',
             'fr',
-            'search-integration.test',
+            'decentralized-web.test',
         );
 
-        // On indexe un document pour être sûr de le trouver
-        $indexUseCase->execute($document);
+        $doc2 = new Document(
+            $id2,
+            'The Future of Decentralized Search',
+            'https://future-search.test',
+            'How decentralized indexes are changing search technology.',
+            'en',
+            'future-search.test',
+        );
 
-        // Exécution du use case de recherche
-        $results = $searchUseCase->execute('id:' . $id);
+        $indexUseCase->execute($doc1);
+        $indexUseCase->execute($doc2);
 
-        // Vérifications
-        static::assertIsArray($results);
-        static::assertNotEmpty($results, 'La recherche devrait retourner au moins un résultat.');
+        // 1. Recherche simple par mot-clé dans le titre (par défaut)
+        $results = $searchUseCase->execute('Décentralisé');
+        SearchUseCaseIntegrationTest::assertNotEmpty($results);
+        SearchUseCaseIntegrationTest::assertSame('Le Web Décentralisé en 2026', $results[0]->getTitle());
 
-        $foundDoc = null;
-        foreach ($results as $doc) {
-            if ($doc->getId() !== $id) {
-                continue;
-            }
+        // 2. Recherche par champ spécifique (Solr syntax)
+        $results = $searchUseCase->execute('language:en');
+        SearchUseCaseIntegrationTest::assertNotEmpty($results);
+        SearchUseCaseIntegrationTest::assertContainsOnlyInstancesOf(Document::class, $results);
 
-            $foundDoc = $doc;
-            break;
-        }
+        // 3. Recherche avec opérateurs
+        $results = $searchUseCase->execute('Future');
+        SearchUseCaseIntegrationTest::assertNotEmpty($results);
+        SearchUseCaseIntegrationTest::assertContainsOnlyInstancesOf(Document::class, $results);
 
-        static::assertNotNull($foundDoc, 'Le document indexé devrait être trouvé.');
-        static::assertSame('Titre Recherche Intégration', $foundDoc->getTitle());
+        // 4. Recherche par ID exact
+        $results = $searchUseCase->execute('id:' . $id1);
+        SearchUseCaseIntegrationTest::assertCount(1, $results);
+        SearchUseCaseIntegrationTest::assertSame($id1, $results[0]->getId());
+
+        // 5. Recherche avec caractères spéciaux
+        $results = $searchUseCase->execute('title:Décentralisé');
+        SearchUseCaseIntegrationTest::assertNotEmpty($results);
+        SearchUseCaseIntegrationTest::assertTrue(array_any($results, fn($d) => $d->getId() === $id1));
     }
 }
