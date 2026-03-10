@@ -1,17 +1,31 @@
 #!/bin/bash
 
 # Script pour exécuter toutes les vérifications Mago : lint, format, analyze et guard
+# Si le premier paramètre est "true", on réduit l'output.
 
-echo "--- Running Mago Lint ---"
-vendor/bin/mago lint || exit 1
+REDUCE_OUTPUT=false
+if [ "$1" == "true" ]; then
+    REDUCE_OUTPUT=true
+fi
 
-echo -e "\n--- Running Mago Format ---"
-vendor/bin/mago format || exit 1
+function run_mago() {
+    local cmd=$1
+    local extra_args=""
+    if [ "$REDUCE_OUTPUT" == "true" ]; then
+        if [ "$cmd" != "format" ]; then
+            extra_args="--reporting-format short"
+        fi
+    else
+        echo -e "\n--- Running Mago ${cmd^} ---"
+    fi
+    vendor/bin/mago $cmd $extra_args 2>&1 | grep -v "INFO" || exit 1
+}
 
-echo -e "\n--- Running Mago Analyze ---"
-vendor/bin/mago analyze || exit 1
+run_mago "lint"
+run_mago "format"
+run_mago "analyze"
+run_mago "guard"
 
-echo -e "\n--- Running Mago Guard ---"
-vendor/bin/mago guard || exit 1
-
-echo -e "\n--- Mago checks completed successfully ---"
+if [ "$REDUCE_OUTPUT" != "true" ]; then
+    echo -e "\n--- Mago checks completed successfully ---"
+fi
