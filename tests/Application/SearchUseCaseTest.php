@@ -6,6 +6,7 @@ namespace App\Tests\Application;
 
 use App\Application\Service\SearchUseCase;
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Tests\Util\DocumentFactory;
 use PHPUnit\Framework\TestCase;
@@ -15,14 +16,20 @@ class SearchUseCaseTest extends TestCase
     public function testExecuteDelegatesToSearchEngine(): void
     {
         $query = 'test';
-        $expectedResults = [
+        $documents = [
             DocumentFactory::create(id: '1'),
         ];
+        $expectedResults = new SearchResult(
+            documents: $documents,
+            totalCount: 1,
+            limit: 10,
+            offset: 0
+        );
 
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects($this->once())
             ->method('search')
-            ->with($query)
+            ->with($query, 0, 10)
             ->willReturn($expectedResults);
 
         $useCase = new SearchUseCase($searchEngineMock);

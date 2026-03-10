@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Infrastructure\Solr;
 
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchResult;
 use App\Infrastructure\Solr\SolrSearchEngine;
 use App\Service\SolrClientServiceInterface;
 use App\Tests\Util\DocumentFactory;
@@ -61,10 +62,12 @@ class SolrSearchEngineTest extends TestCase
             ->willReturn($resultStub);
 
         $resultStub->method('getIterator')->willReturn(new \ArrayIterator([]));
+        $resultStub->method('getNumFound')->willReturn(0);
 
         $results = $this->solrSearchEngine->search($query);
 
-        static::assertIsArray($results);
-        static::assertEmpty($results);
+        static::assertInstanceOf(SearchResult::class, $results);
+        static::assertEmpty($results->getDocuments());
+        static::assertEquals(0, $results->getTotalCount());
     }
 }
