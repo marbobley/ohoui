@@ -19,9 +19,9 @@
     {% if results is not null %}
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <p class="text-muted">{{ results|length }} résultats trouvés</p>
+                <p class="text-muted">{{ results.totalCount }} résultats trouvés</p>
                 <hr>
-                {% for doc in results %}
+                {% for doc in results.documents %}
                     <div class="mb-4">
                         <h3 class="h5 mb-1"><a href="{{ doc.getUrl() }}">{{ doc.getTitle() }}</a></h3>
                         <div class="text-success small mb-1">{{ doc.getUrl() }}</div>
@@ -32,6 +32,32 @@
                 {% else %}
                     <p>Aucun résultat trouvé pour votre recherche.</p>
                 {% endfor %}
+
+                {% if results.totalCount > results.limit %}
+                    <nav aria-label="Pagination des résultats" class="mt-5">
+                        <ul class="pagination justify-content-center">
+                            {% set totalPages = (results.totalCount / results.limit)|round(0, 'ceil') %}
+
+                            <li class="page-item {{ currentPage <= 1 ? 'disabled' }}">
+                                <a class="page-item page-link" href="{{ path('app_home', {q: query, page: currentPage - 1}) }}">Précédent</a>
+                            </li>
+
+                            {% for p in 1..totalPages %}
+                                {% if p <= 5 or p > totalPages - 2 or (p >= currentPage - 2 and p <= currentPage + 2) %}
+                                    <li class="page-item {{ p == currentPage ? 'active' }}">
+                                        <a class="page-link" href="{{ path('app_home', {q: query, page: p}) }}">{{ p }}</a>
+                                    </li>
+                                {% elseif p == 6 or p == totalPages - 2 %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <li class="page-item {{ currentPage >= totalPages ? 'disabled' }}">
+                                <a class="page-link" href="{{ path('app_home', {q: query, page: currentPage + 1}) }}">Suivant</a>
+                            </li>
+                        </ul>
+                    </nav>
+                {% endif %}
             </div>
         </div>
     {% elseif query is not empty %}

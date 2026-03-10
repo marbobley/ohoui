@@ -31,8 +31,11 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute('Décentralisé');
 
-        SearchUseCaseIntegrationTest::assertNotEmpty($results);
-        SearchUseCaseIntegrationTest::assertSame('Le Web Décentralisé en 2026', $results[0]->getTitle());
+        SearchUseCaseIntegrationTest::assertNotEmpty($results->getDocuments());
+        SearchUseCaseIntegrationTest::assertTrue(
+            array_any($results->getDocuments(), fn($d) => $d->getTitle() === 'Le Web Décentralisé en 2026')
+        );
+        SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(1, $results->getTotalCount());
     }
 
     public function testSearchByLanguage(): void
@@ -42,8 +45,8 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute('language:en');
 
-        SearchUseCaseIntegrationTest::assertNotEmpty($results);
-        SearchUseCaseIntegrationTest::assertContainsOnlyInstancesOf(Document::class, $results);
+        SearchUseCaseIntegrationTest::assertNotEmpty($results->getDocuments());
+        SearchUseCaseIntegrationTest::assertContainsOnlyInstancesOf(Document::class, $results->getDocuments());
     }
 
     public function testSearchById(): void
@@ -53,8 +56,8 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute('id:' . $doc->getId());
 
-        SearchUseCaseIntegrationTest::assertCount(1, $results);
-        SearchUseCaseIntegrationTest::assertSame($doc->getId(), $results[0]->getId());
+        SearchUseCaseIntegrationTest::assertCount(1, $results->getDocuments());
+        SearchUseCaseIntegrationTest::assertSame($doc->getId(), $results->getDocuments()[0]->getId());
     }
 
     public function testSearchWithSpecialCharactersInField(): void
@@ -64,7 +67,34 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute('title:Décentralisé');
 
-        SearchUseCaseIntegrationTest::assertNotEmpty($results);
-        SearchUseCaseIntegrationTest::assertTrue(array_any($results, fn($d) => $d->getId() === $doc->getId()));
+        SearchUseCaseIntegrationTest::assertNotEmpty($results->getDocuments());
+        SearchUseCaseIntegrationTest::assertTrue(array_any($results->getDocuments(), fn($d) => $d->getId() === $doc->getId()));
+    }
+
+    public function testPagination(): void
+    {
+        // Indexer plusieurs documents
+        for ($i = 0; $i < 15; ++$i) {
+            $doc = DocumentFactory::create(id: 'pag-' . $i, title: 'Pagination test doc');
+            $this->indexUseCase->execute($doc);
+        }
+
+        // Page 1
+        $resultsPage1 = $this->searchUseCase->execute('title:"Pagination test doc"', 0, 10);
+        SearchUseCaseIntegrationTest::assertCount(10, $resultsPage1->getDocuments());
+        SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(15, $resultsPage1->getTotalCount());
+
+        // Page 2
+        $resultsPage2 = $this->searchUseCase->execute('title:"Pagination test doc"', 10, 10);
+        SearchUseCaseIntegrationTest::assertCount(5, $resultsPage2->getDocuments());
+        SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(15, $resultsPage2->getTotalCount());
+
+        // Vérifier que les documents sont différents
+        $idsPage1 = array_map(fn($d) => $d->getId(), $resultsPage1->getDocuments());
+        $idsPage2 = array_map(fn($d) => $d->getId(), $resultsPage2->getDocuments());
+
+        foreach ($idsPage2 as $id) {
+            SearchUseCaseIntegrationTest::assertNotContains($id, $idsPage1);
+        }
     }
 }

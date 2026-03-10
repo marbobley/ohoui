@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Solr;
 
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
 
@@ -28,9 +29,9 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     }
 
     #[\Override]
-    public function search(string $query): array
+    public function search(string $query, int $offset = 0, int $limit = 10): SearchResult
     {
-        $result = $this->solrClientService->search($query);
+        $result = $this->solrClientService->search($query, $offset, $limit);
 
         $documents = [];
         foreach ($result as $doc) {
@@ -76,6 +77,6 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             $documents[] = new Document($id, $title, $url, $content, $language, $domain);
         }
 
-        return $documents;
+        return new SearchResult($documents, $result->getNumFound() ?? 0, $limit, $offset);
     }
 }
