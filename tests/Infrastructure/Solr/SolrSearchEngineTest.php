@@ -62,7 +62,7 @@ class SolrSearchEngineTest extends TestCase
             ->with($query, $offset, $limit, $filters)
             ->willReturn($resultStub);
 
-        $resultStub->method('getIterator')->willReturn(new ArrayIterator([]));
+        $resultStub->method('getDocuments')->willReturn([]);
         $resultStub->method('getNumFound')->willReturn(0);
 
         $results = $this->solrSearchEngine->search($query, $offset, $limit, $filters);
@@ -75,9 +75,9 @@ class SolrSearchEngineTest extends TestCase
     public function testSearchMapsFacets(): void
     {
         $query = 'test';
-        $resultStub = $this->createStub(Result::class);
-        $facetSetStub = $this->createStub(FacetSet::class);
-        $facetFieldStub = $this->createStub(FacetField::class);
+        $resultStub = $this->createMock(Result::class);
+        $facetSetStub = $this->createMock(FacetSet::class);
+        $facetFieldStub = $this->createMock(FacetField::class);
 
         $this->solrClientServiceMock
             ->method('search')

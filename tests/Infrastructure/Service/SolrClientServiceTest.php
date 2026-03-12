@@ -7,13 +7,13 @@ namespace App\Tests\Infrastructure\Service;
 use App\Service\SolrClientService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Solarium\Client;
+use ReflectionClass;use Solarium\Client;
 use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\Component\FacetSet;
 use Solarium\Component\Facet\Field as FacetField;
-use Solarium\QueryType\Select\Query\Query as SelectQuery;
+use Solarium\Core\Query\Helper;use Solarium\QueryType\Select\Query\FilterQuery;use Solarium\QueryType\Select\Query\Query as SelectQuery;
 use Solarium\QueryType\Select\Result\Result as SelectResult;
-use Solarium\QueryType\Update\Query\Query as UpdateQuery;
+use Solarium\QueryType\Update\Query\Document;use Solarium\QueryType\Update\Query\Query as UpdateQuery;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final class SolrClientServiceTest extends TestCase
@@ -29,7 +29,7 @@ final class SolrClientServiceTest extends TestCase
 
         $this->service = new SolrClientService($adapterStub, $eventDispatcherStub, 'localhost', 8983, '/', 'test_core');
 
-        $reflection = new \ReflectionClass($this->service);
+        $reflection = new ReflectionClass($this->service);
         $property = $reflection->getProperty('client');
         $property->setValue($this->service, $this->clientMock);
     }
@@ -41,7 +41,7 @@ final class SolrClientServiceTest extends TestCase
         $formattedQuery = 'title:"test\ query"^2.0 OR content:"test\ query"';
 
         $selectMock = $this->createMock(SelectQuery::class);
-        $helperMock = $this->createMock(\Solarium\Core\Query\Helper::class);
+        $helperMock = $this->createMock(Helper::class);
         $resultStub = $this->createStub(SelectResult::class);
         $facetSetMock = $this->createMock(FacetSet::class);
         $facetFieldMock = $this->createMock(FacetField::class);
@@ -70,7 +70,7 @@ final class SolrClientServiceTest extends TestCase
             ->willReturn($resultStub);
 
         $result = $this->service->search($queryStr, 10, 20);
-        static::assertSame($resultStub, $result);
+        SolrClientServiceTest::assertSame($resultStub, $result);
     }
 
     public function testSearchWithExplicitFieldDoesNotFormatQuery(): void
@@ -101,7 +101,7 @@ final class SolrClientServiceTest extends TestCase
             ->willReturn($resultStub);
 
         $result = $this->service->search($queryStr);
-        static::assertSame($resultStub, $result);
+        SolrClientServiceTest::assertSame($resultStub, $result);
     }
 
     public function testSearchWithFilters(): void
@@ -109,10 +109,10 @@ final class SolrClientServiceTest extends TestCase
         $queryStr = 'test';
         $filters = ['language' => 'fr', 'domain' => 'example.com'];
         $selectMock = $this->createMock(SelectQuery::class);
-        $resultStub = $this->createStub(SelectResult::class);
+        $resultStub = $this->createMock(SelectResult::class);
         $facetSetMock = $this->createMock(FacetSet::class);
         $facetFieldMock = $this->createMock(FacetField::class);
-        $filterQueryMock = $this->createMock(\Solarium\QueryType\Select\Query\FilterQuery::class);
+        $filterQueryMock = $this->createMock(FilterQuery::class);
 
         $this->clientMock
             ->expects($this->once())
@@ -122,7 +122,7 @@ final class SolrClientServiceTest extends TestCase
         $selectMock->method('getFacetSet')->willReturn($facetSetMock);
         $facetSetMock->method('createFacetField')->willReturn($facetFieldMock);
 
-        $selectMock->method('getHelper')->willReturn($this->createMock(\Solarium\Core\Query\Helper::class));
+        $selectMock->method('getHelper')->willReturn($this->createMock(Helper::class));
 
         $selectMock->expects($this->exactly(2))
             ->method('createFilterQuery')
@@ -137,14 +137,14 @@ final class SolrClientServiceTest extends TestCase
             ->willReturn($resultStub);
 
         $result = $this->service->search($queryStr, 0, 10, $filters);
-        static::assertSame($resultStub, $result);
+        SolrClientServiceTest::assertSame($resultStub, $result);
     }
 
     public function testIndexDocumentCallsClientUpdate(): void
     {
         $data = ['id' => '1', 'title' => 'Test'];
         $updateMock = $this->createMock(UpdateQuery::class);
-        $docMock = $this->createMock(\Solarium\QueryType\Update\Query\Document::class);
+        $docMock = $this->createMock(Document::class);
 
         $this->clientMock
             ->expects($this->once())
