@@ -20,6 +20,10 @@ jobs:
         env:
             DATABASE_URL: postgresql://root:password@127.0.0.1:5432/ohoui_test?serverVersion=16&charset=utf8
             MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+            SOLR_HOST: 127.0.0.1
+            SOLR_PORT: 8983
+            SOLR_CORE: owi_french
+            SOLR_PATH: /
         services:
             postgres:
                 image: postgres:16-alpine
@@ -70,8 +74,4 @@ jobs:
                   php bin/console doctrine:schema:create --env=test
                   php bin/console app:index-sample
             - name: Execute tests
-              env:
-                  SOLR_HOST: 127.0.0.1
-                  SOLR_PORT: 8983
-                  SOLR_CORE: owi_french
               run: vendor/bin/phpunit --display-notices
