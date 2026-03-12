@@ -137,6 +137,9 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute('id:facet-*');
 
+        // Attendre que Solr soit à jour (commit est déjà fait par indexDocument, mais on peut forcer une vérification)
+        $this->assertEquals(3, $results->getTotalCount(), 'Les documents ne sont pas encore tous indexés ou trouvés');
+
         $facets = $results->getFacets();
 
         self::assertNotEmpty($facets);
