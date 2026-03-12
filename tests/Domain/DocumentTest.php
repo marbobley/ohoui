@@ -20,11 +20,11 @@ class DocumentTest extends TestCase
 
         $document = DocumentFactory::create($id, $title, $url, $content, $language, $domain);
 
-        static::assertSame($id, $document->getId());
-        static::assertSame($title, $document->getTitle());
-        static::assertSame($url, $document->getUrl());
-        static::assertSame($content, $document->getContent());
-        static::assertSame($language, $document->getLanguage());
-        static::assertSame($domain, $document->getDomain());
+        self::assertSame($id, $document->getId());
+        self::assertSame($title, $document->getTitle());
+        self::assertSame($url, $document->getUrl());
+        self::assertSame($content, $document->getContent());
+        self::assertSame($language, $document->getLanguage());
+        self::assertSame($domain, $document->getDomain());
     }
 }

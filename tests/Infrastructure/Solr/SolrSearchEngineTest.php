@@ -34,7 +34,7 @@ class SolrSearchEngineTest extends TestCase
         );
 
         $this->solrClientServiceMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('indexDocument')
             ->with([
                 'id' => '1',
@@ -57,7 +57,7 @@ class SolrSearchEngineTest extends TestCase
         $resultStub = $this->createStub(Result::class);
 
         $this->solrClientServiceMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('search')
             ->with($query, $offset, $limit, $filters)
             ->willReturn($resultStub);
@@ -67,10 +67,10 @@ class SolrSearchEngineTest extends TestCase
 
         $results = $this->solrSearchEngine->search($query, $offset, $limit, $filters);
 
-        SolrSearchEngineTest::assertEmpty($results->getDocuments());
-        SolrSearchEngineTest::assertEquals(0, $results->getTotalCount());
-        SolrSearchEngineTest::assertEquals($offset, $results->getOffset());
-        SolrSearchEngineTest::assertEquals($limit, $results->getLimit());
+        self::assertEmpty($results->getDocuments());
+        self::assertEquals(0, $results->getTotalCount());
+        self::assertEquals($offset, $results->getOffset());
+        self::assertEquals($limit, $results->getLimit());
     }
     public function testSearchMapsFacets(): void
     {

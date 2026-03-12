@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Domain\Enum\SearchFacet;
+use App\Domain\Repository\SearchEngineInterface;
 use Override;
 use Solarium\Client;
-use Solarium\Core\Client\Adapter\AdapterInterface;
 use Solarium\QueryType\Select\Result\Result;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
@@ -17,29 +18,9 @@ use function str_contains;
 
 class SolrClientService implements SolrClientServiceInterface
 {
-    private Client $client;
-
     public function __construct(
-        AdapterInterface $adapter,
-        EventDispatcherInterface $eventDispatcher,
-        string $solrHost,
-        int $solrPort,
-        string $solrPath,
-        string $solrCore,
-    ) {
-        $options = [
-            'endpoint' => [
-                'main' => [
-                    'host' => $solrHost,
-                    'port' => $solrPort,
-                    'path' => $solrPath,
-                    'core' => $solrCore,
-                ],
-            ],
-        ];
-
-        $this->client = new Client($adapter, $eventDispatcher, $options);
-    }
+        private readonly Client $client,
+    ) {}
 
     #[Override]
     public function search(string $query, int $start = 0, int $rows = 10, array $filters = []): Result
@@ -47,15 +28,29 @@ class SolrClientService implements SolrClientServiceInterface
         /** @var \Solarium\QueryType\Select\Query\Query $select */
         $select = $this->client->createSelect();
 
+        $this->configureFacets($select);
+        $this->configureQuery($select, $query);
+        $this->configureFilters($select, $filters);
+
+        $select->setStart($start);
+        $select->setRows($rows);
+
+        /** @var Result */
+        return $this->client->select($select);
+    }
+
+    private function configureFacets(\Solarium\QueryType\Select\Query\Query $select): void
+    {
         $facetSet = $select->getFacetSet();
-        /** @var \Solarium\Component\Facet\Field $languageFacet */
-        $languageFacet = $facetSet->createFacetField('language');
-        $languageFacet->setField('language');
+        foreach (SearchFacet::cases() as $facetEnum) {
+            /** @var \Solarium\Component\Facet\Field $facet */
+            $facet = $facetSet->createFacetField($facetEnum->value);
+            $facet->setField($facetEnum->value);
+        }
+    }
 
-        /** @var \Solarium\Component\Facet\Field $domainFacet */
-        $domainFacet = $facetSet->createFacetField('domain');
-        $domainFacet->setField('domain');
-
+    private function configureQuery(\Solarium\QueryType\Select\Query\Query $select, string $query): void
+    {
         if (!str_contains($query, ':')) {
             $helper = $select->getHelper();
             $escapedQuery = $helper->escapeTerm($query);
@@ -64,16 +59,13 @@ class SolrClientService implements SolrClientServiceInterface
         }
 
         $select->setQuery($query);
+    }
 
+    private function configureFilters(\Solarium\QueryType\Select\Query\Query $select, array $filters): void
+    {
         foreach ($filters as $field => $value) {
             $select->createFilterQuery($field)->setQuery(sprintf('%s:%s', $field, $value));
         }
-
-        $select->setStart($start);
-        $select->setRows($rows);
-
-        /** @var Result */
-        return $this->client->select($select);
     }
 
     /**

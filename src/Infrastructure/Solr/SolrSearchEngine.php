@@ -7,9 +7,13 @@ namespace App\Infrastructure\Solr;
 use App\Domain\Model\Document;
 use App\Domain\Model\Facet;
 use App\Domain\Model\FacetValue;
+use App\Domain\Enum\SearchFacet;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
+use Override;
+use Solarium\Component\Result\Facet\Field as SolariumFacetField;
+use Solarium\QueryType\Select\Result\Document as SolariumDocument;
 
 readonly class SolrSearchEngine implements SearchEngineInterface
 {
@@ -17,7 +21,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
         private SolrClientServiceInterface $solrClientService,
     ) {}
 
-    #[\Override]
+    #[Override]
     public function index(Document $document): void
     {
         $this->solrClientService->indexDocument([
@@ -30,62 +34,74 @@ readonly class SolrSearchEngine implements SearchEngineInterface
         ]);
     }
 
-    #[\Override]
+    #[Override]
     public function search(string $query, int $offset = 0, int $limit = 10, array $filters = []): SearchResult
     {
         $result = $this->solrClientService->search($query, $offset, $limit, $filters);
 
         $documents = [];
-        /** @var \Solarium\QueryType\Select\Result\Document $doc */
+        /** @var SolariumDocument $doc */
         foreach ($result as $doc) {
             $documents[] = $this->mapToDocument($doc);
         }
 
-        $facets = [];
+        return new SearchResult(
+            $documents,
+            $result->getNumFound() ?? 0,
+            $limit,
+            $offset,
+            $this->mapFacets($result)
+        );
+    }
+
+    /**
+     * @return Facet[]
+     */
+    private function mapFacets(\Solarium\QueryType\Select\Result\Result $result): array
+    {
         $facetSet = $result->getFacetSet();
-        if ($facetSet !== null) {
-            /**
-             * @var string $facetName
-             * @var mixed $facet
-             */
-            foreach ($facetSet as $facetName => $facet) {
-                if (!$facet instanceof \Solarium\Component\Result\Facet\Field) {
-                    continue;
-                }
+        if ($facetSet === null) {
+            return [];
+        }
 
-                $values = [];
-                /** @var int $count */
-                foreach ($facet as $value => $count) {
-                    $values[] = new FacetValue((string) $value, $count);
-                }
+        $facets = [];
+        /**
+         * @var string $facetName
+         * @var mixed $facet
+         */
+        foreach ($facetSet as $facetName => $facet) {
+            if (!$facet instanceof SolariumFacetField) {
+                continue;
+            }
 
-                if ($values !== []) {
-                    $label = match ($facetName) {
-                        'language' => 'Langue',
-                        'domain' => 'Domaine',
-                        default => $facetName,
-                    };
-                    $facets[] = new Facet($facetName, $label, $values);
-                }
+            $values = [];
+            /** @var int $count */
+            foreach ($facet as $value => $count) {
+                $values[] = new FacetValue((string) $value, $count);
+            }
+
+            if ($values !== []) {
+                $label = SearchFacet::tryFromLabel($facetName);
+                $facets[] = new Facet($facetName, $label, $values);
             }
         }
 
-        return new SearchResult($documents, $result->getNumFound() ?? 0, $limit, $offset, $facets);
+        return $facets;
     }
 
-    private function mapToDocument(\Solarium\QueryType\Select\Result\Document $doc): Document
+    private function mapToDocument(SolariumDocument $doc): Document
     {
         /** @var array<string, mixed> $docData */
         $docData = $doc->getFields();
 
-        $id = $this->extractStringValue($docData, 'id');
-        $title = $this->extractStringValue($docData, 'title');
-        $url = $this->extractStringValue($docData, 'url');
-        $content = $this->extractStringValue($docData, 'content');
-        $language = $this->extractStringValue($docData, 'language');
-        $domain = $this->extractStringValue($docData, 'domain');
-
-        return new Document($id, $title, $url, $content, $language, $domain);
+        return new Document(
+            $this->extractStringValue($docData, 'id'),
+            $this->extractStringValue($docData, 'title'),
+            $this->extractStringValue($docData, 'url'),
+            $this->extractStringValue($docData, 'content'),
+            $this->extractStringValue($docData, 'language'),
+            $this->extractStringValue($docData, 'domain')
+        );
     }
 
     /**
@@ -93,12 +109,8 @@ readonly class SolrSearchEngine implements SearchEngineInterface
      */
     private function extractStringValue(array $data, string $key): string
     {
-        /** @var string|string[] $value */
         $value = $data[$key] ?? '';
-        if (\is_array($value)) {
-            $value = (string) \reset($value);
-        }
 
-        return $value;
+        return \is_array($value) ? (string) \reset($value) : (string) $value;
     }
 }
