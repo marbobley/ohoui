@@ -33,7 +33,7 @@ Les tests doivent être organisés parallèlement au code source dans `tests/` :
 - `tests/Domain/`, `tests/Application/`, `tests/Infrastructure/`, `tests/Integration/`, `tests/Controller/`.
 
 ### Qualité et Sécurité (PHP)
-- **Appels de Fonctions Globales :** Toutes les fonctions globales natives de PHP **doivent** être précédées d'un anti-slash (`\`) pour l'optimisation (OPcache) et la sécurité (ex: `\str_contains`).
+- **Appels de Fonctions Globales :** Préférer l'utilisation de `use function <nom_de_la_fonction>;` en haut du fichier plutôt que l'utilisation de l'anti-slash (`\`) directement dans le code (ex: `use function str_contains;`).
 - **Linter :** Utiliser `mago` pour valider le code avant chaque commit :
   ```bash
   vendor/bin/mago lint

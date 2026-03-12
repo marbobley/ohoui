@@ -12,6 +12,9 @@ use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
+use function sprintf;
+use function str_contains;
+
 class SolrClientService implements SolrClientServiceInterface
 {
     private Client $client;
@@ -53,17 +56,17 @@ class SolrClientService implements SolrClientServiceInterface
         $domainFacet = $facetSet->createFacetField('domain');
         $domainFacet->setField('domain');
 
-        if (!\str_contains($query, ':')) {
+        if (!str_contains($query, ':')) {
             $helper = $select->getHelper();
             $escapedQuery = $helper->escapeTerm($query);
             // On cherche dans le titre avec un boost de 2.0 et dans le contenu par défaut
-            $query = \sprintf('title:"%1$s"^2.0 OR content:"%1$s"', $escapedQuery);
+            $query = sprintf('title:"%1$s"^2.0 OR content:"%1$s"', $escapedQuery);
         }
 
         $select->setQuery($query);
 
         foreach ($filters as $field => $value) {
-            $select->createFilterQuery($field)->setQuery(\sprintf('%s:%s', $field, $value));
+            $select->createFilterQuery($field)->setQuery(sprintf('%s:%s', $field, $value));
         }
 
         $select->setStart($start);
