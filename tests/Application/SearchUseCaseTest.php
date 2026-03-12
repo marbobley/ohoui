@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Application;
 
 use App\Application\Service\SearchUseCase;
-use App\Domain\Model\Document;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Tests\Util\DocumentFactory;
@@ -17,7 +16,7 @@ class SearchUseCaseTest extends TestCase
     {
         $query = 'test';
         $documents = [
-            DocumentFactory::create(id: '1'),
+            DocumentFactory::create(),
         ];
         $expectedResults = new SearchResult(
             documents: $documents,
