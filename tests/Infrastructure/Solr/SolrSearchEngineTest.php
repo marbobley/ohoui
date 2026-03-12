@@ -51,21 +51,26 @@ class SolrSearchEngineTest extends TestCase
     public function testSearchDelegatesToClientService(): void
     {
         $query = 'test';
+        $offset = 10;
+        $limit = 20;
+        $filters = ['domain' => 'example.com'];
         $resultStub = $this->createStub(Result::class);
 
         $this->solrClientServiceMock
             ->expects($this->once())
             ->method('search')
-            ->with($query)
+            ->with($query, $offset, $limit, $filters)
             ->willReturn($resultStub);
 
         $resultStub->method('getIterator')->willReturn(new ArrayIterator([]));
         $resultStub->method('getNumFound')->willReturn(0);
 
-        $results = $this->solrSearchEngine->search($query);
+        $results = $this->solrSearchEngine->search($query, $offset, $limit, $filters);
 
         SolrSearchEngineTest::assertEmpty($results->getDocuments());
         SolrSearchEngineTest::assertEquals(0, $results->getTotalCount());
+        SolrSearchEngineTest::assertEquals($offset, $results->getOffset());
+        SolrSearchEngineTest::assertEquals($limit, $results->getLimit());
     }
     public function testSearchMapsFacets(): void
     {
