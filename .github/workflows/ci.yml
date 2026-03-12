@@ -68,6 +68,7 @@ jobs:
               run: |
                   php bin/console doctrine:database:create --env=test --if-not-exists
                   php bin/console doctrine:schema:create --env=test
+                  php bin/console app:index-sample
             - name: Execute tests
               env:
                   SOLR_HOST: 127.0.0.1
