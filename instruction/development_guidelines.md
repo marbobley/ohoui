@@ -9,23 +9,17 @@ Ce document définit les principes et les règles de développement à suivre po
 - **Clean Code :**
     - **DRY (Don't Repeat Yourself) :** Éviter la duplication.
     - **KISS (Keep It Simple, Stupid) :** Favoriser la simplicité.
-    - **SOLID :**
-        - Single Responsibility (S)
-        - Open/Closed (O)
-        - Liskov Substitution (L)
-        - Interface Segregation (I)
-        - Dependency Inversion (D)
+    - **SOLID :** SRP, OCP, LSP, ISP, DIP.
 
 ## 2. Structure du Code (Architecture Hexagonale)
 Le code source dans `src/` doit être organisé comme suit :
-- `Domain/` : Contient les entités métier, les objets de valeur (Value Objects), les exceptions métier et les interfaces des dépôts (Ports). Ne doit dépendre d'aucune bibliothèque externe (hormis PHP lui-même).
+- `Domain/` : Contient les entités métier, les objets de valeur (Value Objects), les exceptions métier et les interfaces des dépôts (Ports). Ne doit dépendre d'aucune bibliothèque externe.
 - `Application/` : Contient les cas d'utilisation (Services applicatifs) qui orchestrent le domaine.
 - `Infrastructure/` : Contient les implémentations concrètes des interfaces du domaine (Adaptateurs) : persistence, clients API (Solr), etc.
 - `Controller/` : Contient les contrôleurs Web et API.
 - `Command/` : Contient les commandes console Symfony.
-- `Service/` : Services transversaux (SolrClient, etc.).
-- `Entity/` : Entités Doctrine (si présentes).
-- `Repository/` : Dépôts Doctrine (si présents).
+- `Service/` : Services transversaux techniques.
+- `Entity/` / `Repository/` : Persistence Doctrine (si nécessaire).
 
 ## 3. Workflow TDD
 1. Créer un test unitaire ou d'intégration dans `tests/`.
@@ -34,12 +28,15 @@ Le code source dans `src/` doit être organisé comme suit :
 4. Lancer le test et vérifier qu'il passe.
 5. Refactoriser le code tout en gardant le test vert.
 
-### 4. Tests et Qualité du Code
+## 4. Tests et Qualité du Code
 Les tests doivent être organisés parallèlement au code source dans `tests/` :
-- `tests/Domain/` : Tests unitaires pour les entités et objets du domaine.
-- `tests/Application/` : Tests unitaires pour les cas d'utilisation (Use Cases) avec des doublures (mocks).
-- `tests/Infrastructure/` : Tests unitaires et d'intégration pour les adaptateurs (Solr, BD, etc.).
-- `tests/Integration/` : Tests d'intégration de bout en bout impliquant plusieurs couches (ex: UseCase + Solr réel).
-- `tests/Controller/` : Tests fonctionnels (WebTestCase) pour l'interface utilisateur.
+- `tests/Domain/`, `tests/Application/`, `tests/Infrastructure/`, `tests/Integration/`, `tests/Controller/`.
+
+### Qualité et Sécurité (PHP)
+- **Appels de Fonctions Globales :** Toutes les fonctions globales natives de PHP **doivent** être précédées d'un anti-slash (`\`) pour l'optimisation (OPcache) et la sécurité (ex: `\str_contains`).
+- **Linter :** Utiliser `mago` pour valider le code avant chaque commit :
+  ```bash
+  vendor/bin/mago lint
+  ```
 
 Toute nouvelle fonctionnalité doit être accompagnée de ses tests correspondants.
