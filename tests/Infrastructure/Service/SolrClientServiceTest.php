@@ -9,6 +9,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Solarium\Client;
 use Solarium\Core\Client\Adapter\AdapterInterface;
+use Solarium\Component\FacetSet;
+use Solarium\Component\Facet\Field as FacetField;
 use Solarium\QueryType\Select\Query\Query as SelectQuery;
 use Solarium\QueryType\Select\Result\Result as SelectResult;
 use Solarium\QueryType\Update\Query\Query as UpdateQuery;
@@ -36,24 +38,30 @@ final class SolrClientServiceTest extends TestCase
     {
         $queryStr = 'test query';
         $escapedQuery = 'test\ query';
-        $formattedQuery = '"test\ query"';
+        $formattedQuery = 'title:"test\ query"^2.0 OR content:"test\ query"';
 
         $selectMock = $this->createMock(SelectQuery::class);
         $helperMock = $this->createMock(\Solarium\Core\Query\Helper::class);
         $resultStub = $this->createStub(SelectResult::class);
+        $facetSetMock = $this->createMock(FacetSet::class);
+        $facetFieldMock = $this->createMock(FacetField::class);
 
         $this->clientMock
             ->expects($this->once())
             ->method('createSelect')
             ->willReturn($selectMock);
 
+        $selectMock->expects($this->once())->method('getFacetSet')->willReturn($facetSetMock);
+        $facetSetMock->expects($this->exactly(2))->method('createFacetField')->willReturn($facetFieldMock);
+        $facetFieldMock->expects($this->exactly(2))->method('setField');
+
         $selectMock->expects($this->once())->method('getHelper')->willReturn($helperMock);
 
         $helperMock->expects($this->once())->method('escapeTerm')->with($queryStr)->willReturn($escapedQuery);
 
         $selectMock->expects($this->once())->method('setQuery')->with($formattedQuery);
-        $selectMock->expects($this->once())->method('setQueryDefaultField')->with('title');
-        $selectMock->expects($this->once())->method('setQueryDefaultOperator')->with('OR');
+        $selectMock->expects($this->once())->method('setStart')->with(10);
+        $selectMock->expects($this->once())->method('setRows')->with(20);
 
         $this->clientMock
             ->expects($this->once())
@@ -61,7 +69,7 @@ final class SolrClientServiceTest extends TestCase
             ->with($selectMock)
             ->willReturn($resultStub);
 
-        $result = $this->service->search($queryStr);
+        $result = $this->service->search($queryStr, 10, 20);
         static::assertSame($resultStub, $result);
     }
 
@@ -70,11 +78,17 @@ final class SolrClientServiceTest extends TestCase
         $queryStr = 'title:specific';
         $selectMock = $this->createMock(SelectQuery::class);
         $resultStub = $this->createStub(SelectResult::class);
+        $facetSetMock = $this->createMock(FacetSet::class);
+        $facetFieldMock = $this->createMock(FacetField::class);
 
         $this->clientMock
             ->expects($this->once())
             ->method('createSelect')
             ->willReturn($selectMock);
+
+        $selectMock->expects($this->once())->method('getFacetSet')->willReturn($facetSetMock);
+        $facetSetMock->expects($this->exactly(2))->method('createFacetField')->willReturn($facetFieldMock);
+        $facetFieldMock->expects($this->exactly(2))->method('setField');
 
         $selectMock->expects($this->never())->method('getHelper');
 
@@ -87,6 +101,42 @@ final class SolrClientServiceTest extends TestCase
             ->willReturn($resultStub);
 
         $result = $this->service->search($queryStr);
+        static::assertSame($resultStub, $result);
+    }
+
+    public function testSearchWithFilters(): void
+    {
+        $queryStr = 'test';
+        $filters = ['language' => 'fr', 'domain' => 'example.com'];
+        $selectMock = $this->createMock(SelectQuery::class);
+        $resultStub = $this->createStub(SelectResult::class);
+        $facetSetMock = $this->createMock(FacetSet::class);
+        $facetFieldMock = $this->createMock(FacetField::class);
+        $filterQueryMock = $this->createMock(\Solarium\QueryType\Select\Query\FilterQuery::class);
+
+        $this->clientMock
+            ->expects($this->once())
+            ->method('createSelect')
+            ->willReturn($selectMock);
+
+        $selectMock->method('getFacetSet')->willReturn($facetSetMock);
+        $facetSetMock->method('createFacetField')->willReturn($facetFieldMock);
+
+        $selectMock->method('getHelper')->willReturn($this->createMock(\Solarium\Core\Query\Helper::class));
+
+        $selectMock->expects($this->exactly(2))
+            ->method('createFilterQuery')
+            ->willReturn($filterQueryMock);
+
+        $filterQueryMock->expects($this->exactly(2))
+            ->method('setQuery');
+
+        $this->clientMock
+            ->expects($this->once())
+            ->method('select')
+            ->willReturn($resultStub);
+
+        $result = $this->service->search($queryStr, 0, 10, $filters);
         static::assertSame($resultStub, $result);
     }
 

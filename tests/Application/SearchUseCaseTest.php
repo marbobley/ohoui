@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Application;
 
 use App\Application\Service\SearchUseCase;
-use App\Domain\Model\Document;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Tests\Util\DocumentFactory;
@@ -16,24 +15,28 @@ class SearchUseCaseTest extends TestCase
     public function testExecuteDelegatesToSearchEngine(): void
     {
         $query = 'test';
+        $offset = 20;
+        $limit = 10;
+        $filters = ['language' => 'fr'];
+
         $documents = [
-            DocumentFactory::create(id: '1'),
+            DocumentFactory::create(),
         ];
         $expectedResults = new SearchResult(
             documents: $documents,
             totalCount: 1,
-            limit: 10,
-            offset: 0
+            limit: $limit,
+            offset: $offset
         );
 
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects($this->once())
             ->method('search')
-            ->with($query, 0, 10)
+            ->with($query, $offset, $limit, $filters)
             ->willReturn($expectedResults);
 
         $useCase = new SearchUseCase($searchEngineMock);
-        $results = $useCase->execute($query);
+        $results = $useCase->execute($query, $offset, $limit, $filters);
 
         static::assertSame($expectedResults, $results);
     }

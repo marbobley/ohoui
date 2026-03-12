@@ -13,8 +13,11 @@ final readonly class SearchUseCase
         private SearchEngineInterface $searchEngine,
     ) {}
 
-    public function execute(string $query, int $offset = 0, int $limit = 10): SearchResult
+    /**
+     * @param array<string, string> $filters
+     */
+    public function execute(string $query, int $offset = 0, int $limit = 10, array $filters = []): SearchResult
     {
-        return $this->searchEngine->search($query, $offset, $limit);
+        return $this->searchEngine->search($query, $offset, $limit, $filters);
     }
 }

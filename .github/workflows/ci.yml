@@ -17,11 +17,18 @@ permissions:
 jobs:
     symfony-tests:
         runs-on: ubuntu-latest
+        env:
+            DATABASE_URL: postgresql://root:password@127.0.0.1:5432/ohoui_test?serverVersion=16&charset=utf8
+            MESSENGER_TRANSPORT_DSN: doctrine://default?auto_setup=0
+            SOLR_HOST: 127.0.0.1
+            SOLR_PORT: 8983
+            SOLR_CORE: owi_french
+            SOLR_PATH: /
         services:
             postgres:
                 image: postgres:16-alpine
                 env:
-                    POSTGRES_DB: blogSymfony_test
+                    POSTGRES_DB: ohoui_test
                     POSTGRES_PASSWORD: password
                     POSTGRES_USER: root
                 ports:
@@ -60,17 +67,24 @@ jobs:
               run: php bin/console importmap:install
             - name: Create Solr Core
               run: |
-                  docker exec -u solr $(docker ps --filter "ancestor=solr:9" --format "{{.ID}}") solr create -c owi_french
+                  SOLR_CONTAINER=$(docker ps --filter "ancestor=solr:9" --format "{{.ID}}")
+                  docker exec -u solr $SOLR_CONTAINER solr create -c owi_french
+                  # Désactiver le mode schéma dynamique (Data-driven)
+                  curl -X POST -H 'Content-type:application/json' --data-binary '{"set-user-property": {"update.autoCreateFields":"false"}}' http://localhost:8983/solr/owi_french/config
+                  # Définition explicite du schéma
+                  curl -X POST -H 'Content-type:application/json' --data-binary '{
+                    "add-field": [
+                      {"name":"language", "type":"string", "indexed":true, "stored":true, "docValues":true},
+                      {"name":"domain", "type":"string", "indexed":true, "stored":true, "docValues":true},
+                      {"name":"title", "type":"text_general", "indexed":true, "stored":true},
+                      {"name":"content", "type":"text_general", "indexed":true, "stored":true},
+                      {"name":"url", "type":"string", "indexed":true, "stored":true}
+                    ]
+                  }' http://localhost:8983/solr/owi_french/schema
             - name: Create Database and Schema
-              env:
-                  DATABASE_URL: postgresql://root:password@127.0.0.1:5432/blogSymfony_test?serverVersion=16&charset=utf8
               run: |
                   php bin/console doctrine:database:create --env=test --if-not-exists
                   php bin/console doctrine:schema:create --env=test
+                  php bin/console app:index-sample
             - name: Execute tests
-              env:
-                  DATABASE_URL: postgresql://root:password@127.0.0.1:5432/blogSymfony_test?serverVersion=16&charset=utf8
-                  SOLR_HOST: 127.0.0.1
-                  SOLR_PORT: 8983
-                  SOLR_CORE: owi_french
               run: vendor/bin/phpunit --display-notices

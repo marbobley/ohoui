@@ -11,5 +11,8 @@ interface SearchEngineInterface
 {
     public function index(Document $document): void;
 
-    public function search(string $query, int $offset = 0, int $limit = 10): SearchResult;
+    /**
+     * @param array<string, string> $filters
+     */
+    public function search(string $query, int $offset = 0, int $limit = 10, array $filters = []): SearchResult;
 }
