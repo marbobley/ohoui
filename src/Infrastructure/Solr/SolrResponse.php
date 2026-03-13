@@ -8,12 +8,10 @@ class SolrResponse
 {
     /**
      * @param list<array<array-key, mixed>> $documents
-     * @param array<string, array<string, int>> $facets
      */
     public function __construct(
         private array $documents,
         private int $numFound,
-        private array $facets,
     ) {}
 
     /**
@@ -27,13 +25,5 @@ class SolrResponse
     public function getNumFound(): int
     {
         return $this->numFound;
-    }
-
-    /**
-     * @return array<string, array<string, int>>
-     */
-    public function getFacets(): array
-    {
-        return $this->facets;
     }
 }

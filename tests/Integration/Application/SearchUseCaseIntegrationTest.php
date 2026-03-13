@@ -8,8 +8,6 @@ use App\Application\Service\IndexUseCase;
 use App\Application\Service\SearchUseCase;
 use App\Domain\Model\Document;
 use App\Tests\Util\DocumentFactory;
-use App\Domain\Model\Facet;
-use App\Domain\Model\FacetValue;
 use App\Domain\Model\SearchResult;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use function array_any;
@@ -125,62 +123,7 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
             SearchUseCaseIntegrationTest::assertNotContains($id, $idsPage1);
         }
     }
-    public function testFacetsAreReturned(): void
-    {
-        $doc1 = DocumentFactory::create(id: 'facet-1', language: 'fr', domain: 'example.com');
-        $doc2 = DocumentFactory::create(id: 'facet-2', language: 'en', domain: 'example.com');
-        $doc3 = DocumentFactory::create(id: 'facet-3', language: 'fr', domain: 'other.com');
-
-        $this->indexUseCase->execute($doc1);
-        $this->indexUseCase->execute($doc2);
-        $this->indexUseCase->execute($doc3);
-
-        $results = $this->searchUseCase->execute('id:facet-*');
-
-        // Attendre que Solr soit à jour (commit est déjà fait par indexDocument, mais on peut forcer une vérification)
-        $this->assertEquals(3, $results->getTotalCount(), 'Les documents ne sont pas encore tous indexés ou trouvés');
-
-        $facets = $results->getFacets();
-
-        self::assertNotEmpty($facets);
-
-        $languageFacet = null;
-        $domainFacet = null;
-
-        foreach ($facets as $facet) {
-            if ($facet->getName() === 'language') {
-                $languageFacet = $facet;
-            } elseif ($facet->getName() === 'domain') {
-                $domainFacet = $facet;
-            }
-        }
-
-        self::assertNotNull($languageFacet);
-        self::assertSame('Langue', $languageFacet->getLabel());
-
-        $langValues = [];
-        foreach ($languageFacet->getValues() as $fv) {
-            $langValues[$fv->getValue()] = $fv->getCount();
-        }
-        self::assertArrayHasKey('fr', $langValues);
-        self::assertArrayHasKey('en', $langValues);
-        self::assertEquals(2, $langValues['fr']);
-        self::assertEquals(1, $langValues['en']);
-
-        self::assertNotNull($domainFacet);
-        self::assertSame('Domaine', $domainFacet->getLabel());
-
-        $domainValues = [];
-        foreach ($domainFacet->getValues() as $fv) {
-            $domainValues[$fv->getValue()] = $fv->getCount();
-        }
-        self::assertArrayHasKey('example.com', $domainValues);
-        self::assertArrayHasKey('other.com', $domainValues);
-        self::assertEquals(2, $domainValues['example.com']);
-        self::assertEquals(1, $domainValues['other.com']);
-    }
-
-    public function testSearchWithFacetFilters(): void
+    public function testSearchWithFilters(): void
     {
         $doc1 = DocumentFactory::create(id: 'filter-1', language: 'fr', domain: 'a.com');
         $doc2 = DocumentFactory::create(id: 'filter-2', language: 'en', domain: 'a.com');

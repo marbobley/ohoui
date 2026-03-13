@@ -62,7 +62,6 @@ class SolrSearchEngineTest extends TestCase
 
         $responseStub->method('getDocuments')->willReturn([]);
         $responseStub->method('getNumFound')->willReturn(0);
-        $responseStub->method('getFacets')->willReturn([]);
 
         $results = $this->solrSearchEngine->search($query, $offset, $limit, $filters);
 
@@ -70,31 +69,5 @@ class SolrSearchEngineTest extends TestCase
         self::assertEquals(0, $results->getTotalCount());
         self::assertEquals($offset, $results->getOffset());
         self::assertEquals($limit, $results->getLimit());
-    }
-
-    public function testSearchMapsFacets(): void
-    {
-        $query = 'test';
-        $responseStub = $this->createMock(SolrResponse::class);
-
-        $this->solrClientServiceMock
-            ->method('search')
-            ->willReturn($responseStub);
-
-        $responseStub->method('getDocuments')->willReturn([]);
-        $responseStub->method('getNumFound')->willReturn(0);
-        $responseStub->method('getFacets')->willReturn([
-            'language' => ['fr' => 5, 'en' => 2],
-        ]);
-
-        $results = $this->solrSearchEngine->search($query);
-
-        self::assertCount(1, $results->getFacets());
-        $facet = $results->getFacets()[0];
-        self::assertSame('language', $facet->getName());
-        self::assertSame('Langue', $facet->getLabel());
-        self::assertCount(2, $facet->getValues());
-        self::assertSame('fr', $facet->getValues()[0]->getValue());
-        self::assertSame(5, $facet->getValues()[0]->getCount());
     }
 }

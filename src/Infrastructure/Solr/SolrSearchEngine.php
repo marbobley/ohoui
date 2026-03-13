@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Solr;
 
-use App\Domain\Enum\SearchFacet;
 use App\Domain\Model\Document;
-use App\Domain\Model\Facet;
-use App\Domain\Model\FacetValue;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
@@ -42,35 +39,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             $documents[] = $this->mapToDocument($docData);
         }
 
-        return new SearchResult(
-            $documents,
-            $response->getNumFound(),
-            $limit,
-            $offset,
-            $this->mapFacets($response->getFacets()),
-        );
-    }
-
-    /**
-     * @param array<string, array<string, int>> $facetsData
-     * @return Facet[]
-     */
-    private function mapFacets(array $facetsData): array
-    {
-        $facets = [];
-        foreach ($facetsData as $facetName => $valuesData) {
-            $values = [];
-            foreach ($valuesData as $value => $count) {
-                $values[] = new FacetValue($value, $count);
-            }
-
-            if ($values !== []) {
-                $label = SearchFacet::tryFromLabel($facetName);
-                $facets[] = new Facet($facetName, $label, $values);
-            }
-        }
-
-        return $facets;
+        return new SearchResult($documents, $response->getNumFound(), $limit, $offset);
     }
 
     /**
