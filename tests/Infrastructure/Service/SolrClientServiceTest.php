@@ -97,4 +97,24 @@ final class SolrClientServiceTest extends TestCase
 
         $this->service->indexDocument($data);
     }
+
+    public function testPurgeCallsClientUpdateWithDeleteQuery(): void
+    {
+        $updateMock = $this->createMock(UpdateQuery::class);
+
+        $this->clientMock
+            ->expects(self::once())
+            ->method('createUpdate')
+            ->willReturn($updateMock);
+
+        $updateMock->expects(self::once())->method('addDeleteQuery')->with('*:*');
+        $updateMock->expects(self::once())->method('addCommit');
+
+        $this->clientMock
+            ->expects(self::once())
+            ->method('update')
+            ->with($updateMock);
+
+        $this->service->purge();
+    }
 }

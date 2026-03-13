@@ -10,6 +10,7 @@ use App\Domain\Model\SearchResult;
 interface SearchEngineInterface
 {
     public function index(Document $document): void;
+    public function purge(): void;
 
     /**
      * @param array<string, string> $filters

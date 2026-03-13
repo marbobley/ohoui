@@ -17,4 +17,6 @@ interface SolrClientServiceInterface
      * @param array<string, mixed> $data
      */
     public function indexDocument(array $data): void;
+
+    public function purge(): void;
 }

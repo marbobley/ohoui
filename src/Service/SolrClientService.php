@@ -55,4 +55,15 @@ class SolrClientService implements SolrClientServiceInterface
 
         $this->client->update($update);
     }
+
+    #[Override]
+    public function purge(): void
+    {
+        /** @var Query $update */
+        $update = $this->client->createUpdate();
+        $update->addDeleteQuery('*:*');
+        $update->addCommit();
+
+        $this->client->update($update);
+    }
 }
