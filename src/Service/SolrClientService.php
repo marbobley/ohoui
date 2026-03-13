@@ -4,70 +4,34 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Domain\Enum\SearchFacet;
+use App\Infrastructure\Solr\SolrDataMapperInterface;
+use App\Infrastructure\Solr\SolrQueryBuilderInterface;
+use App\Infrastructure\Solr\SolrResponse;
 use Override;
 use Solarium\Client;
-use Solarium\QueryType\Select\Result\Result;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
-
-use function sprintf;
-use function str_contains;
 
 class SolrClientService implements SolrClientServiceInterface
 {
     public function __construct(
         private readonly Client $client,
+        private readonly SolrQueryBuilderInterface $queryBuilder,
+        private readonly SolrDataMapperInterface $dataMapper,
     ) {}
 
     #[Override]
-    public function search(string $query, int $start = 0, int $rows = 10, array $filters = []): Result
+    public function search(string $query, int $start = 0, int $rows = 10, array $filters = []): SolrResponse
     {
         /** @var \Solarium\QueryType\Select\Query\Query $select */
         $select = $this->client->createSelect();
 
-        $this->configureFacets($select);
-        $this->configureQuery($select, $query);
-        $this->configureFilters($select, $filters);
+        $this->queryBuilder->build($select, $query, $start, $rows, $filters);
 
-        $select->setStart($start);
-        $select->setRows($rows);
+        /** @var \Solarium\QueryType\Select\Result\Result $result */
+        $result = $this->client->select($select);
 
-        /** @var Result */
-        return $this->client->select($select);
-    }
-
-    private function configureFacets(\Solarium\QueryType\Select\Query\Query $select): void
-    {
-        $facetSet = $select->getFacetSet();
-        foreach (SearchFacet::cases() as $facetEnum) {
-            /** @var \Solarium\Component\Facet\Field $facet */
-            $facet = $facetSet->createFacetField($facetEnum->value);
-            $facet->setField($facetEnum->value);
-        }
-    }
-
-    private function configureQuery(\Solarium\QueryType\Select\Query\Query $select, string $query): void
-    {
-        if (!str_contains($query, ':')) {
-            $helper = $select->getHelper();
-            $escapedQuery = $helper->escapeTerm($query);
-            // On cherche dans le titre avec un boost de 2.0 et dans le contenu par défaut
-            $query = sprintf('title:"%1$s"^2.0 OR content:"%1$s"', $escapedQuery);
-        }
-
-        $select->setQuery($query);
-    }
-
-    private function configureFilters(\Solarium\QueryType\Select\Query\Query $select, array $filters): void
-    {
-        /**
-         * @var string $field
-         * @var mixed $value
-         */
-        foreach ($filters as $field => $value) {
-            $select->createFilterQuery($field)->setQuery(sprintf('%s:%s', $field, (string) $value));
-        }
+        return $this->dataMapper->mapResponse($result);
     }
 
     /**

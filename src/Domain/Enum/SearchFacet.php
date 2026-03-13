@@ -17,8 +17,8 @@ enum SearchFacet: string
         };
     }
 
-    public static function tryFromLabel(string $name): string
+    public static function tryFromLabel(string $name): string|self
     {
-        return self::tryFrom($name)?->label() ?? $name;
+        return self::tryFrom($name) ?? $name;
     }
 }

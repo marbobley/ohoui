@@ -12,8 +12,6 @@ use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
 use Override;
-use Solarium\Component\Result\Facet\Field as SolariumFacetField;
-use Solarium\QueryType\Select\Result\Document as SolariumDocument;
 
 readonly class SolrSearchEngine implements SearchEngineInterface
 {
@@ -37,41 +35,33 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     #[Override]
     public function search(string $query, int $offset = 0, int $limit = 10, array $filters = []): SearchResult
     {
-        $result = $this->solrClientService->search($query, $offset, $limit, $filters);
+        $response = $this->solrClientService->search($query, $offset, $limit, $filters);
 
         $documents = [];
-        /** @var SolariumDocument $doc */
-        foreach ($result as $doc) {
-            $documents[] = $this->mapToDocument($doc);
+        foreach ($response->getDocuments() as $docData) {
+            $documents[] = $this->mapToDocument($docData);
         }
 
-        return new SearchResult($documents, $result->getNumFound() ?? 0, $limit, $offset, $this->mapFacets($result));
+        return new SearchResult(
+            $documents,
+            $response->getNumFound(),
+            $limit,
+            $offset,
+            $this->mapFacets($response->getFacets()),
+        );
     }
 
     /**
+     * @param array<string, array<string, int>> $facetsData
      * @return Facet[]
      */
-    private function mapFacets(\Solarium\QueryType\Select\Result\Result $result): array
+    private function mapFacets(array $facetsData): array
     {
-        $facetSet = $result->getFacetSet();
-        if ($facetSet === null) {
-            return [];
-        }
-
         $facets = [];
-        /**
-         * @var string $facetName
-         * @var mixed $facet
-         */
-        foreach ($facetSet as $facetName => $facet) {
-            if (!$facet instanceof SolariumFacetField) {
-                continue;
-            }
-
+        foreach ($facetsData as $facetName => $valuesData) {
             $values = [];
-            /** @var int $count */
-            foreach ($facet as $value => $count) {
-                $values[] = new FacetValue((string) $value, $count);
+            foreach ($valuesData as $value => $count) {
+                $values[] = new FacetValue($value, $count);
             }
 
             if ($values !== []) {
@@ -83,11 +73,11 @@ readonly class SolrSearchEngine implements SearchEngineInterface
         return $facets;
     }
 
-    private function mapToDocument(SolariumDocument $doc): Document
+    /**
+     * @param array<array-key, mixed> $docData
+     */
+    private function mapToDocument(array $docData): Document
     {
-        /** @var array<string, mixed> $docData */
-        $docData = $doc->getFields();
-
         return new Document(
             $this->extractStringValue($docData, 'id'),
             $this->extractStringValue($docData, 'title'),
@@ -99,7 +89,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<array-key, mixed> $data
      */
     private function extractStringValue(array $data, string $key): string
     {

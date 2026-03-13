@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Model;
 
+use App\Domain\Enum\SearchFacet;
+
 final readonly class Facet
 {
     /**
@@ -11,7 +13,7 @@ final readonly class Facet
      */
     public function __construct(
         private string $name,
-        private string $label,
+        private string|SearchFacet $label,
         private array $values,
     ) {}
 
@@ -22,7 +24,7 @@ final readonly class Facet
 
     public function getLabel(): string
     {
-        return $this->label;
+        return $this->label instanceof SearchFacet ? $this->label->label() : $this->label;
     }
 
     /**

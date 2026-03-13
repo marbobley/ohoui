@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Infrastructure\Solr;
 
+use App\Infrastructure\Solr\SolrResponse;
 use App\Infrastructure\Solr\SolrSearchEngine;
 use App\Service\SolrClientServiceInterface;
 use App\Tests\Util\DocumentFactory;
-use ArrayIterator;use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Solarium\Component\Result\FacetSet;
-use Solarium\Component\Result\Facet\Field as FacetField;
-use Solarium\QueryType\Select\Result\Result;
 
 class SolrSearchEngineTest extends TestCase
 {
@@ -54,16 +52,17 @@ class SolrSearchEngineTest extends TestCase
         $offset = 10;
         $limit = 20;
         $filters = ['domain' => 'example.com'];
-        $resultStub = $this->createStub(Result::class);
+        $responseStub = $this->createStub(SolrResponse::class);
 
         $this->solrClientServiceMock
             ->expects(self::once())
             ->method('search')
             ->with($query, $offset, $limit, $filters)
-            ->willReturn($resultStub);
+            ->willReturn($responseStub);
 
-        $resultStub->method('getDocuments')->willReturn([]);
-        $resultStub->method('getNumFound')->willReturn(0);
+        $responseStub->method('getDocuments')->willReturn([]);
+        $responseStub->method('getNumFound')->willReturn(0);
+        $responseStub->method('getFacets')->willReturn([]);
 
         $results = $this->solrSearchEngine->search($query, $offset, $limit, $filters);
 
@@ -72,29 +71,21 @@ class SolrSearchEngineTest extends TestCase
         self::assertEquals($offset, $results->getOffset());
         self::assertEquals($limit, $results->getLimit());
     }
+
     public function testSearchMapsFacets(): void
     {
         $query = 'test';
-        $resultStub = $this->createMock(Result::class);
-        $facetSetStub = $this->createMock(FacetSet::class);
-        $facetFieldStub = $this->createMock(FacetField::class);
+        $responseStub = $this->createMock(SolrResponse::class);
 
         $this->solrClientServiceMock
             ->method('search')
-            ->willReturn($resultStub);
+            ->willReturn($responseStub);
 
-        $resultStub->method('getIterator')->willReturn(new ArrayIterator([]));
-        $resultStub->method('getNumFound')->willReturn(0);
-        $resultStub->method('getFacetSet')->willReturn($facetSetStub);
-
-        $facetSetStub->method('getIterator')->willReturn(new ArrayIterator([
-            'language' => $facetFieldStub,
-        ]));
-
-        $facetFieldStub->method('getIterator')->willReturn(new ArrayIterator([
-            'fr' => 5,
-            'en' => 2,
-        ]));
+        $responseStub->method('getDocuments')->willReturn([]);
+        $responseStub->method('getNumFound')->willReturn(0);
+        $responseStub->method('getFacets')->willReturn([
+            'language' => ['fr' => 5, 'en' => 2],
+        ]);
 
         $results = $this->solrSearchEngine->search($query);
 
