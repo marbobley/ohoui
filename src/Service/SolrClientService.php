@@ -12,6 +12,8 @@ use Solarium\Client;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
 
+use function reset;
+
 class SolrClientService implements SolrClientServiceInterface
 {
     public function __construct(
@@ -54,5 +56,57 @@ class SolrClientService implements SolrClientServiceInterface
         $update->addCommit();
 
         $this->client->update($update);
+    }
+
+    #[Override]
+    public function purge(): void
+    {
+        /** @var Query $update */
+        $update = $this->client->createUpdate();
+        $update->addDeleteQuery('*:*');
+        $update->addCommit();
+
+        $this->client->update($update);
+    }
+
+    /**
+     * @throws \Solarium\Exception\UnexpectedValueException
+     */
+    #[Override]
+    public function getStatus(): array
+    {
+        /** @var \Solarium\QueryType\Server\CoreAdmin\Query\Query $adminQuery */
+        $adminQuery = $this->client->createCoreAdmin();
+        $options = $this->client->getOptions();
+        /** @var array<string, array<string, string>> $endpoints */
+        $endpoints = $options['endpoint'] ?? [];
+        $coreName = 'unknown';
+        if ([] !== $endpoints) {
+            /** @var array<string, string> $firstEndpoint */
+            $firstEndpoint = reset($endpoints);
+            $coreName = $firstEndpoint['core'] ?? 'unknown';
+        }
+        /** @var \Solarium\QueryType\Server\CoreAdmin\Query\Action\Status $statusAction */
+        $statusAction = $adminQuery->createStatus();
+        $statusAction->setCore($coreName);
+        $adminQuery->setAction($statusAction);
+
+        /** @var \Solarium\QueryType\Server\CoreAdmin\Result\Result $result */
+        $result = $this->client->coreAdmin($adminQuery);
+        $statusResult = $result->getStatusResult();
+
+        /** @var \Solarium\QueryType\Select\Query\Query $select */
+        $select = $this->client->createSelect();
+        $select->setRows(0);
+        /** @var \Solarium\QueryType\Select\Result\Result $selectResult */
+        $selectResult = $this->client->select($select);
+
+        return [
+            'core_name' => $coreName,
+            'num_docs' => $selectResult->getNumFound(),
+            'index_size' => 'N/A', // Solarium StatusResult doesn't seem to expose size directly in a simple way in this version
+            'last_modified' => $statusResult?->getLastModified()?->format('Y-m-d H:i:s') ?? 'N/A',
+            'uptime' => $statusResult?->getUptime() ?? 'N/A',
+        ];
     }
 }

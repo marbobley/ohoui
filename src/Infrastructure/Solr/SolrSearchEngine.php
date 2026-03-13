@@ -30,6 +30,12 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     }
 
     #[Override]
+    public function purge(): void
+    {
+        $this->solrClientService->purge();
+    }
+
+    #[Override]
     public function search(string $query, int $offset = 0, int $limit = 10, array $filters = []): SearchResult
     {
         $response = $this->solrClientService->search($query, $offset, $limit, $filters);
@@ -40,6 +46,12 @@ readonly class SolrSearchEngine implements SearchEngineInterface
         }
 
         return new SearchResult($documents, $response->getNumFound(), $limit, $offset);
+    }
+
+    #[Override]
+    public function getStatus(): array
+    {
+        return $this->solrClientService->getStatus();
     }
 
     /**
