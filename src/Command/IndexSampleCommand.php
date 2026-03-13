@@ -163,14 +163,16 @@ class IndexSampleCommand extends Command
      */
     private function indexDocument(array $data): void
     {
-        $this->indexUseCase->execute(new Document(
-            $data['id'],
-            $data['title'],
-            $data['url'],
-            $data['content'],
-            $data['language'],
-            $data['domain'],
-        ));
+        $this->indexUseCase->execute(
+            new Document(
+                $data['id'],
+                $data['title'],
+                $data['url'],
+                $data['content'],
+                $data['language'],
+                $data['domain'],
+            ),
+        );
     }
 
     /**

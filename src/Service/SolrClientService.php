@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Domain\Enum\SearchFacet;
-use App\Domain\Repository\SearchEngineInterface;
 use Override;
 use Solarium\Client;
 use Solarium\QueryType\Select\Result\Result;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 use function sprintf;
 use function str_contains;
@@ -63,8 +61,12 @@ class SolrClientService implements SolrClientServiceInterface
 
     private function configureFilters(\Solarium\QueryType\Select\Query\Query $select, array $filters): void
     {
+        /**
+         * @var string $field
+         * @var mixed $value
+         */
         foreach ($filters as $field => $value) {
-            $select->createFilterQuery($field)->setQuery(sprintf('%s:%s', $field, $value));
+            $select->createFilterQuery($field)->setQuery(sprintf('%s:%s', $field, (string) $value));
         }
     }
 

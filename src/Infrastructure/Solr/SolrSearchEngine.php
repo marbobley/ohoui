@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Solr;
 
+use App\Domain\Enum\SearchFacet;
 use App\Domain\Model\Document;
 use App\Domain\Model\Facet;
 use App\Domain\Model\FacetValue;
-use App\Domain\Enum\SearchFacet;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
@@ -45,13 +45,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             $documents[] = $this->mapToDocument($doc);
         }
 
-        return new SearchResult(
-            $documents,
-            $result->getNumFound() ?? 0,
-            $limit,
-            $offset,
-            $this->mapFacets($result)
-        );
+        return new SearchResult($documents, $result->getNumFound() ?? 0, $limit, $offset, $this->mapFacets($result));
     }
 
     /**
@@ -100,7 +94,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             $this->extractStringValue($docData, 'url'),
             $this->extractStringValue($docData, 'content'),
             $this->extractStringValue($docData, 'language'),
-            $this->extractStringValue($docData, 'domain')
+            $this->extractStringValue($docData, 'domain'),
         );
     }
 
@@ -109,6 +103,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
      */
     private function extractStringValue(array $data, string $key): string
     {
+        /** @var mixed $value */
         $value = $data[$key] ?? '';
 
         return \is_array($value) ? (string) \reset($value) : (string) $value;
