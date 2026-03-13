@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Command;
 
-use App\Application\Service\SolrHealthUseCase;
+use App\Application\Service\SolrHealthUseCaseInterface;
 use App\Command\SolrHealthCommand;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Application;
+use Exception;use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 
 final class SolrHealthCommandTest extends TestCase
@@ -22,7 +21,7 @@ final class SolrHealthCommandTest extends TestCase
             'uptime' => 12345,
         ];
 
-        $healthUseCaseMock = $this->createMock(SolrHealthUseCase::class);
+        $healthUseCaseMock = $this->createMock(SolrHealthUseCaseInterface::class);
         $healthUseCaseMock->expects(self::once())
             ->method('execute')
             ->willReturn($status);
@@ -42,10 +41,10 @@ final class SolrHealthCommandTest extends TestCase
 
     public function testExecuteFailure(): void
     {
-        $healthUseCaseMock = $this->createMock(SolrHealthUseCase::class);
+        $healthUseCaseMock = $this->createMock(SolrHealthUseCaseInterface::class);
         $healthUseCaseMock->expects(self::once())
             ->method('execute')
-            ->willThrowException(new \Exception('Connection refused'));
+            ->willThrowException(new Exception('Connection refused'));
 
         $command = new SolrHealthCommand($healthUseCaseMock);
 

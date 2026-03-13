@@ -12,6 +12,8 @@ use Solarium\Client;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
 
+use function reset;
+
 class SolrClientService implements SolrClientServiceInterface
 {
     public function __construct(
@@ -67,11 +69,24 @@ class SolrClientService implements SolrClientServiceInterface
         $this->client->update($update);
     }
 
+    /**
+     * @throws \Solarium\Exception\UnexpectedValueException
+     */
     #[Override]
     public function getStatus(): array
     {
+        /** @var \Solarium\QueryType\Server\CoreAdmin\Query\Query $adminQuery */
         $adminQuery = $this->client->createCoreAdmin();
-        $coreName = $this->client->getOptions()['endpoint']['localhost']['core'] ?? 'unknown';
+        $options = $this->client->getOptions();
+        /** @var array<string, array<string, string>> $endpoints */
+        $endpoints = $options['endpoint'] ?? [];
+        $coreName = 'unknown';
+        if ([] !== $endpoints) {
+            /** @var array<string, string> $firstEndpoint */
+            $firstEndpoint = reset($endpoints);
+            $coreName = $firstEndpoint['core'] ?? 'unknown';
+        }
+        /** @var \Solarium\QueryType\Server\CoreAdmin\Query\Action\Status $statusAction */
         $statusAction = $adminQuery->createStatus();
         $statusAction->setCore($coreName);
         $adminQuery->setAction($statusAction);
@@ -80,8 +95,10 @@ class SolrClientService implements SolrClientServiceInterface
         $result = $this->client->coreAdmin($adminQuery);
         $statusResult = $result->getStatusResult();
 
+        /** @var \Solarium\QueryType\Select\Query\Query $select */
         $select = $this->client->createSelect();
         $select->setRows(0);
+        /** @var \Solarium\QueryType\Select\Result\Result $selectResult */
         $selectResult = $this->client->select($select);
 
         return [

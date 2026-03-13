@@ -5,24 +5,28 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Application\Service\PurgeUseCase;
+use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(
-    name: 'app:solr:purge',
-    description: 'Purge tous les documents de Solr',
-)]
+use function sprintf;
+
+#[AsCommand(name: 'app:solr:purge', description: 'Purge tous les documents de Solr')]
 class SolrPurgeCommand extends Command
 {
+    /**
+     * @throws \Symfony\Component\Console\Exception\LogicException
+     */
     public function __construct(
         private readonly PurgeUseCase $purgeUseCase,
     ) {
         parent::__construct();
     }
 
+    #[Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);

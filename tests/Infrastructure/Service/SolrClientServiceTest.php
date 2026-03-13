@@ -59,7 +59,7 @@ final class SolrClientServiceTest extends TestCase
 
         $this->clientMock->expects(self::once())
             ->method('getOptions')
-            ->willReturn(['endpoint' => ['localhost' => ['core' => $coreName]]]);
+            ->willReturn(['endpoint' => ['main' => ['core' => $coreName]]]);
 
         $adminQueryMock->expects(self::once())
             ->method('createStatus')
