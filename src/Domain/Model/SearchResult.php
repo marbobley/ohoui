@@ -8,14 +8,12 @@ final readonly class SearchResult
 {
     /**
      * @param Document[] $documents
-     * @param Facet[] $facets
      */
     public function __construct(
         private array $documents,
         private int $totalCount,
         private int $limit,
         private int $offset,
-        private array $facets = [],
     ) {}
 
     /**
@@ -24,14 +22,6 @@ final readonly class SearchResult
     public function getDocuments(): array
     {
         return $this->documents;
-    }
-
-    /**
-     * @return Facet[]
-     */
-    public function getFacets(): array
-    {
-        return $this->facets;
     }
 
     public function getTotalCount(): int

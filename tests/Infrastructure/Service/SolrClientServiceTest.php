@@ -4,163 +4,94 @@ declare(strict_types=1);
 
 namespace App\Tests\Infrastructure\Service;
 
+use App\Infrastructure\Solr\SolrDataMapperInterface;
+use App\Infrastructure\Solr\SolrQueryBuilderInterface;
+use App\Infrastructure\Solr\SolrResponse;
 use App\Service\SolrClientService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Solarium\Client;
-use Solarium\Core\Client\Adapter\AdapterInterface;
-use Solarium\Component\FacetSet;
-use Solarium\Component\Facet\Field as FacetField;
 use Solarium\QueryType\Select\Query\Query as SelectQuery;
 use Solarium\QueryType\Select\Result\Result as SelectResult;
+use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query as UpdateQuery;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 final class SolrClientServiceTest extends TestCase
 {
     private SolrClientService $service;
     private Client&MockObject $clientMock;
+    private SolrQueryBuilderInterface&MockObject $queryBuilderMock;
+    private SolrDataMapperInterface&MockObject $dataMapperMock;
 
     protected function setUp(): void
     {
-        $this->clientMock = $this->createMock(Client::class);
-        $adapterStub = $this->createStub(AdapterInterface::class);
-        $eventDispatcherStub = $this->createStub(EventDispatcherInterface::class);
-
-        $this->service = new SolrClientService($adapterStub, $eventDispatcherStub, 'localhost', 8983, '/', 'test_core');
-
-        $reflection = new \ReflectionClass($this->service);
-        $property = $reflection->getProperty('client');
-        $property->setValue($this->service, $this->clientMock);
+        $this->clientMock = $this->getMockBuilder(Client::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->queryBuilderMock = $this->getMockBuilder(SolrQueryBuilderInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->dataMapperMock = $this->getMockBuilder(SolrDataMapperInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->service = new SolrClientService($this->clientMock, $this->queryBuilderMock, $this->dataMapperMock);
     }
 
     public function testSearchCallsClientSelect(): void
     {
         $queryStr = 'test query';
-        $escapedQuery = 'test\ query';
-        $formattedQuery = 'title:"test\ query"^2.0 OR content:"test\ query"';
 
         $selectMock = $this->createMock(SelectQuery::class);
-        $helperMock = $this->createMock(\Solarium\Core\Query\Helper::class);
         $resultStub = $this->createStub(SelectResult::class);
-        $facetSetMock = $this->createMock(FacetSet::class);
-        $facetFieldMock = $this->createMock(FacetField::class);
+        $responseStub = $this->createStub(SolrResponse::class);
 
         $this->clientMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createSelect')
             ->willReturn($selectMock);
 
-        $selectMock->expects($this->once())->method('getFacetSet')->willReturn($facetSetMock);
-        $facetSetMock->expects($this->exactly(2))->method('createFacetField')->willReturn($facetFieldMock);
-        $facetFieldMock->expects($this->exactly(2))->method('setField');
-
-        $selectMock->expects($this->once())->method('getHelper')->willReturn($helperMock);
-
-        $helperMock->expects($this->once())->method('escapeTerm')->with($queryStr)->willReturn($escapedQuery);
-
-        $selectMock->expects($this->once())->method('setQuery')->with($formattedQuery);
-        $selectMock->expects($this->once())->method('setStart')->with(10);
-        $selectMock->expects($this->once())->method('setRows')->with(20);
+        $this->queryBuilderMock
+            ->expects(self::once())
+            ->method('build')
+            ->with($selectMock, $queryStr, 10, 20, []);
 
         $this->clientMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('select')
             ->with($selectMock)
             ->willReturn($resultStub);
+
+        $this->dataMapperMock
+            ->expects(self::once())
+            ->method('mapResponse')
+            ->with($resultStub)
+            ->willReturn($responseStub);
 
         $result = $this->service->search($queryStr, 10, 20);
-        static::assertSame($resultStub, $result);
-    }
-
-    public function testSearchWithExplicitFieldDoesNotFormatQuery(): void
-    {
-        $queryStr = 'title:specific';
-        $selectMock = $this->createMock(SelectQuery::class);
-        $resultStub = $this->createStub(SelectResult::class);
-        $facetSetMock = $this->createMock(FacetSet::class);
-        $facetFieldMock = $this->createMock(FacetField::class);
-
-        $this->clientMock
-            ->expects($this->once())
-            ->method('createSelect')
-            ->willReturn($selectMock);
-
-        $selectMock->expects($this->once())->method('getFacetSet')->willReturn($facetSetMock);
-        $facetSetMock->expects($this->exactly(2))->method('createFacetField')->willReturn($facetFieldMock);
-        $facetFieldMock->expects($this->exactly(2))->method('setField');
-
-        $selectMock->expects($this->never())->method('getHelper');
-
-        $selectMock->expects($this->once())->method('setQuery')->with($queryStr);
-
-        $this->clientMock
-            ->expects($this->once())
-            ->method('select')
-            ->with($selectMock)
-            ->willReturn($resultStub);
-
-        $result = $this->service->search($queryStr);
-        static::assertSame($resultStub, $result);
-    }
-
-    public function testSearchWithFilters(): void
-    {
-        $queryStr = 'test';
-        $filters = ['language' => 'fr', 'domain' => 'example.com'];
-        $selectMock = $this->createMock(SelectQuery::class);
-        $resultStub = $this->createStub(SelectResult::class);
-        $facetSetMock = $this->createMock(FacetSet::class);
-        $facetFieldMock = $this->createMock(FacetField::class);
-        $filterQueryMock = $this->createMock(\Solarium\QueryType\Select\Query\FilterQuery::class);
-
-        $this->clientMock
-            ->expects($this->once())
-            ->method('createSelect')
-            ->willReturn($selectMock);
-
-        $selectMock->method('getFacetSet')->willReturn($facetSetMock);
-        $facetSetMock->method('createFacetField')->willReturn($facetFieldMock);
-
-        $selectMock->method('getHelper')->willReturn($this->createMock(\Solarium\Core\Query\Helper::class));
-
-        $selectMock->expects($this->exactly(2))
-            ->method('createFilterQuery')
-            ->willReturn($filterQueryMock);
-
-        $filterQueryMock->expects($this->exactly(2))
-            ->method('setQuery');
-
-        $this->clientMock
-            ->expects($this->once())
-            ->method('select')
-            ->willReturn($resultStub);
-
-        $result = $this->service->search($queryStr, 0, 10, $filters);
-        static::assertSame($resultStub, $result);
+        self::assertSame($responseStub, $result);
     }
 
     public function testIndexDocumentCallsClientUpdate(): void
     {
         $data = ['id' => '1', 'title' => 'Test'];
         $updateMock = $this->createMock(UpdateQuery::class);
-        $docMock = $this->createMock(\Solarium\QueryType\Update\Query\Document::class);
+        $docMock = $this->createMock(Document::class);
 
         $this->clientMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('createUpdate')
             ->willReturn($updateMock);
 
-        $updateMock->expects($this->once())->method('createDocument')->willReturn($docMock);
+        $updateMock->expects(self::once())->method('createDocument')->willReturn($docMock);
 
-        $docMock->expects($this->exactly(2))->method('setField');
+        $docMock->expects(self::exactly(2))->method('setField');
 
-        $updateMock->expects($this->once())->method('addDocument')->with($docMock);
+        $updateMock->expects(self::once())->method('addDocument')->with($docMock);
 
-        $updateMock->expects($this->once())->method('addCommit');
+        $updateMock->expects(self::once())->method('addCommit');
 
         $this->clientMock
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('update')
             ->with($updateMock);
 

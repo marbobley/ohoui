@@ -13,11 +13,6 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-        bind:
-            string $solrHost: '%env(SOLR_HOST)%'
-            int $solrPort: '%env(int:SOLR_PORT)%'
-            string $solrPath: '%env(SOLR_PATH)%'
-            string $solrCore: '%env(SOLR_CORE)%'
 
     App\Application\Service\:
         resource: '../src/Application/Service/'
@@ -31,6 +26,16 @@ services:
             - '../src/Application/Service/'
 
     App\Domain\Repository\SearchEngineInterface: '@App\Infrastructure\Solr\SolrSearchEngine'
+
+    Solarium\Client:
+        arguments:
+            $options:
+                endpoint:
+                    main:
+                        host: '%env(SOLR_HOST)%'
+                        port: '%env(int:SOLR_PORT)%'
+                        path: '%env(SOLR_PATH)%'
+                        core: '%env(SOLR_CORE)%'
 
     Solarium\Core\Client\Adapter\AdapterInterface:
         class: Solarium\Core\Client\Adapter\Curl

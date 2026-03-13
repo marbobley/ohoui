@@ -17,43 +17,8 @@
     </div>
 
     {% if results is not null %}
-        <div class="row">
-            <div class="col-md-3">
-                {% if results.facets is not empty %}
-                    <div class="card mb-4">
-                        <div class="card-header bg-light">Filtres</div>
-                        <div class="card-body p-0">
-                            {% for facet in results.facets %}
-                                <div class="p-3 border-bottom">
-                                    <h5 class="h6 mb-3">{{ facet.label }}</h5>
-                                    <ul class="list-unstyled mb-0">
-                                        {% for value in facet.values %}
-                                            {% set is_active = activeFilters[facet.name] is defined and activeFilters[facet.name] == value.value %}
-                                            <li class="mb-2">
-                                                {% if is_active %}
-                                                    <strong>{{ value.value }}</strong> ({{ value.count }})
-                                                    <a href="{{ path('app_home', {q: query, filters: activeFilters|filter((v, k) => k != facet.name)}) }}" class="text-danger small ms-1" title="Supprimer le filtre">✕</a>
-                                                {% else %}
-                                                    <a href="{{ path('app_home', {q: query, filters: activeFilters|merge({(facet.name): value.value})}) }}" class="text-decoration-none">
-                                                        {{ value.value }}
-                                                    </a>
-                                                    <span class="text-muted small">({{ value.count }})</span>
-                                                {% endif %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            {% endfor %}
-                            {% if activeFilters is not empty %}
-                                <div class="p-3 text-center">
-                                    <a href="{{ path('app_home', {q: query}) }}" class="btn btn-sm btn-outline-secondary w-100">Effacer tous les filtres</a>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-            <div class="col-md-9">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
                 <p class="text-muted">{{ results.totalCount }} résultats trouvés</p>
                 <hr>
                 {% for doc in results.documents %}
