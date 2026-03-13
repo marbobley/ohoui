@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Application\Service\PurgeUseCase;
+use Exception;
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\LogicException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -18,7 +20,7 @@ use function sprintf;
 class SolrPurgeCommand extends Command
 {
     /**
-     * @throws \Symfony\Component\Console\Exception\LogicException
+     * @throws LogicException
      */
     public function __construct(
         private readonly PurgeUseCase $purgeUseCase,
@@ -40,7 +42,7 @@ class SolrPurgeCommand extends Command
         try {
             $this->purgeUseCase->execute();
             $io->success('Solr a été purgé avec succès.');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error(sprintf('Une erreur est survenue lors de la purge de Solr : %s', $e->getMessage()));
 
             return Command::FAILURE;
