@@ -48,6 +48,12 @@ readonly class SolrSearchEngine implements SearchEngineInterface
         return new SearchResult($documents, $response->getNumFound(), $limit, $offset);
     }
 
+    #[Override]
+    public function getStatus(): array
+    {
+        return $this->solrClientService->getStatus();
+    }
+
     /**
      * @param array<array-key, mixed> $docData
      */

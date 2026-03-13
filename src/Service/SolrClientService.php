@@ -66,4 +66,30 @@ class SolrClientService implements SolrClientServiceInterface
 
         $this->client->update($update);
     }
+
+    #[Override]
+    public function getStatus(): array
+    {
+        $adminQuery = $this->client->createCoreAdmin();
+        $coreName = $this->client->getOptions()['endpoint']['localhost']['core'] ?? 'unknown';
+        $statusAction = $adminQuery->createStatus();
+        $statusAction->setCore($coreName);
+        $adminQuery->setAction($statusAction);
+
+        /** @var \Solarium\QueryType\Server\CoreAdmin\Result\Result $result */
+        $result = $this->client->coreAdmin($adminQuery);
+        $statusResult = $result->getStatusResult();
+
+        $select = $this->client->createSelect();
+        $select->setRows(0);
+        $selectResult = $this->client->select($select);
+
+        return [
+            'core_name' => $coreName,
+            'num_docs' => $selectResult->getNumFound(),
+            'index_size' => 'N/A', // Solarium StatusResult doesn't seem to expose size directly in a simple way in this version
+            'last_modified' => $statusResult?->getLastModified()?->format('Y-m-d H:i:s') ?? 'N/A',
+            'uptime' => $statusResult?->getUptime() ?? 'N/A',
+        ];
+    }
 }

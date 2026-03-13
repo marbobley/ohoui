@@ -19,4 +19,9 @@ interface SolrClientServiceInterface
     public function indexDocument(array $data): void;
 
     public function purge(): void;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getStatus(): array;
 }
