@@ -1,5 +1,25 @@
 
 services:
+  app:
+    build: .
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@database:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-16}&charset=${POSTGRES_CHARSET:-utf8}
+      - SOLR_HOST=solr
+      - SOLR_PORT=8983
+      - APP_SECRET=${APP_SECRET:-!ChangeMe!}
+      - APP_ENV=dev
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "8443:443/udp"
+    volumes:
+      - .:/app
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - database
+      - solr
+
 ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
@@ -30,6 +50,8 @@ services:
       - owi_french
 
 volumes:
+  caddy_data:
+  caddy_config:
 ###> doctrine/doctrine-bundle ###
   database_data:
 ###< doctrine/doctrine-bundle ###
