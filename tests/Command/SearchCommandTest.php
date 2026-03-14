@@ -104,7 +104,7 @@ final class SearchCommandTest extends TestCase
         $commandTester = new CommandTester($command);
         $commandTester->execute([
             'query' => $query,
-            '--filter' => ['domain:php.net'],
+            '--filter' => ['domain:php.net', 'invalid_filter'],
         ]);
 
         $commandTester->assertCommandIsSuccessful();
@@ -112,6 +112,33 @@ final class SearchCommandTest extends TestCase
         self::assertStringContainsString('Recherche pour : "php"', $output);
         self::assertStringContainsString('Filtres actifs :', $output);
         self::assertStringContainsString('- domain: php.net', $output);
+        self::assertStringNotContainsString('invalid_filter', $output);
         self::assertStringContainsString('Trouvé 1 document(s) (total: 1)', $output);
+    }
+
+    public function testExecuteWithPagination(): void
+    {
+        $query = 'php';
+        $limit = 5;
+        $offset = 10;
+        $searchResult = new SearchResult([], 0, $limit, $offset);
+
+        $searchEngineMock = $this->createMock(SearchEngineInterface::class);
+        $searchEngineMock->expects(self::once())
+            ->method('search')
+            ->with($query, $offset, $limit, [])
+            ->willReturn($searchResult);
+
+        $searchUseCase = new SearchUseCase($searchEngineMock);
+
+        $command = new SearchCommand($searchUseCase);
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([
+            'query' => $query,
+            '--limit' => $limit,
+            '--offset' => $offset,
+        ]);
+
+        $commandTester->assertCommandIsSuccessful();
     }
 }

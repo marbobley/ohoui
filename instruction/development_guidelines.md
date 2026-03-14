@@ -34,9 +34,9 @@ Les tests doivent être organisés parallèlement au code source dans `tests/` :
 
 ### Qualité et Sécurité (PHP)
 - **Appels de Fonctions Globales :** Préférer l'utilisation de `use function <nom_de_la_fonction>;` en haut du fichier plutôt que l'utilisation de l'anti-slash (`\`) directement dans le code (ex: `use function str_contains;`).
-- **Linter :** Utiliser `mago` pour valider le code avant chaque commit :
-  ```bash
-  vendor/bin/mago lint
-  ```
+- **Linter :** Utiliser `mago` pour valider le code avant de soumettre.
+
+## 5. Gestion des versions (Git)
+- **Interdiction Formelle pour l'IA :** Ne JAMAIS effectuer de commandes `git add`, `git commit`, `git pull`, `git fetch`, `git push` ou toute autre opération de modification de l'index ou de l'historique Git. L'IA doit se contenter de modifier les fichiers. La gestion de l'index et des commits est réservée à l'utilisateur humain.
 
 Toute nouvelle fonctionnalité doit être accompagnée de ses tests correspondants.

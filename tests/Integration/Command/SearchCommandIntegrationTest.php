@@ -77,4 +77,83 @@ final class SearchCommandIntegrationTest extends KernelTestCase
         $this->assertStringContainsString('Recherche pour : "MotCleInexistantDansSolr"', $output);
         $this->assertStringContainsString('Aucun résultat trouvé.', $output);
     }
+
+    public function testExecuteWithFilters(): void
+    {
+        // Indexation de documents
+        $this->solrClientService->indexDocument([
+            'id' => 'test-filter-fr',
+            'title' => 'Test filtré FR',
+            'url' => 'https://example.com/fr',
+            'content' => 'Contenu en français',
+            'language' => 'fr',
+            'domain' => 'example.com',
+        ]);
+        $this->solrClientService->indexDocument([
+            'id' => 'test-filter-en',
+            'title' => 'Test filtered EN',
+            'url' => 'https://example.com/en',
+            'content' => 'Content in English',
+            'language' => 'en',
+            'domain' => 'example.com',
+        ]);
+
+        $kernel = self::bootKernel();
+        $application = new Application($kernel);
+        $command = $application->find('app:search');
+        $commandTester = new CommandTester($command);
+
+        // Recherche avec filtre langue fr
+        $commandTester->execute([
+            'query' => 'Test',
+            '--filter' => ['language:fr'],
+        ]);
+
+        $commandTester->assertCommandIsSuccessful();
+        $output = $commandTester->getDisplay();
+        $this->assertStringContainsString('Trouvé 1 document(s)', $output);
+        $this->assertStringContainsString('Test filtré FR', $output);
+        $this->assertStringNotContainsString('Test filtered EN', $output);
+    }
+
+    public function testExecuteWithPagination(): void
+    {
+        // Indexation de 3 documents
+        for ($i = 1; $i <= 3; $i++) {
+            $this->solrClientService->indexDocument([
+                'id' => "test-pagination-$i",
+                'title' => "Document $i",
+                'url' => "https://example.com/$i",
+                'content' => 'Contenu de test pagination',
+                'language' => 'fr',
+                'domain' => 'example.com',
+            ]);
+        }
+
+        $kernel = self::bootKernel();
+        $application = new Application($kernel);
+        $command = $application->find('app:search');
+        $commandTester = new CommandTester($command);
+
+        // Test limite à 2
+        $commandTester->execute([
+            'query' => 'pagination',
+            '--limit' => 2,
+        ]);
+
+        $commandTester->assertCommandIsSuccessful();
+        $output = $commandTester->getDisplay();
+        $this->assertStringContainsString('Trouvé 2 document(s) (total: 3)', $output);
+
+        // Test offset à 2 (devrait donner le 3ème document)
+        $commandTester->execute([
+            'query' => 'pagination',
+            '--limit' => 2,
+            '--offset' => 2,
+        ]);
+
+        $commandTester->assertCommandIsSuccessful();
+        $output = $commandTester->getDisplay();
+        $this->assertStringContainsString('Trouvé 1 document(s) (total: 3)', $output);
+    }
 }
