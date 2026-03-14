@@ -9,17 +9,20 @@ use App\Infrastructure\Solr\SolrQueryBuilderInterface;
 use App\Infrastructure\Solr\SolrResponse;
 use Override;
 use Solarium\Client;
+use Solarium\Exception\UnexpectedValueException;
+use Solarium\QueryType\Select\Result\Result;
+use Solarium\QueryType\Server\CoreAdmin\Query\Action\Status;
 use Solarium\QueryType\Update\Query\Document;
 use Solarium\QueryType\Update\Query\Query;
 
 use function reset;
 
-class SolrClientService implements SolrClientServiceInterface
+readonly class SolrClientService implements SolrClientServiceInterface
 {
     public function __construct(
-        private readonly Client $client,
-        private readonly SolrQueryBuilderInterface $queryBuilder,
-        private readonly SolrDataMapperInterface $dataMapper,
+        private Client $client,
+        private SolrQueryBuilderInterface $queryBuilder,
+        private SolrDataMapperInterface $dataMapper,
     ) {}
 
     #[Override]
@@ -30,7 +33,7 @@ class SolrClientService implements SolrClientServiceInterface
 
         $this->queryBuilder->build($select, $query, $start, $rows, $filters);
 
-        /** @var \Solarium\QueryType\Select\Result\Result $result */
+        /** @var Result $result */
         $result = $this->client->select($select);
 
         return $this->dataMapper->mapResponse($result);
@@ -70,7 +73,7 @@ class SolrClientService implements SolrClientServiceInterface
     }
 
     /**
-     * @throws \Solarium\Exception\UnexpectedValueException
+     * @throws UnexpectedValueException
      */
     #[Override]
     public function getStatus(): array
@@ -86,7 +89,7 @@ class SolrClientService implements SolrClientServiceInterface
             $firstEndpoint = reset($endpoints);
             $coreName = $firstEndpoint['core'] ?? 'unknown';
         }
-        /** @var \Solarium\QueryType\Server\CoreAdmin\Query\Action\Status $statusAction */
+        /** @var Status $statusAction */
         $statusAction = $adminQuery->createStatus();
         $statusAction->setCore($coreName);
         $adminQuery->setAction($statusAction);
@@ -98,7 +101,7 @@ class SolrClientService implements SolrClientServiceInterface
         /** @var \Solarium\QueryType\Select\Query\Query $select */
         $select = $this->client->createSelect();
         $select->setRows(0);
-        /** @var \Solarium\QueryType\Select\Result\Result $selectResult */
+        /** @var Result $selectResult */
         $selectResult = $this->client->select($select);
 
         return [
