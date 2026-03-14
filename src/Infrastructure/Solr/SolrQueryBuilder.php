@@ -38,10 +38,10 @@ class SolrQueryBuilder implements SolrQueryBuilderInterface
     {
         /**
          * @var string $field
-         * @var mixed $value
+         * @var string $value
          */
         foreach ($filters as $field => $value) {
-            $select->createFilterQuery($field)->setQuery(sprintf('%s:%s', $field, (string) $value));
+            $select->createFilterQuery($field)->setQuery(sprintf('%s:%s', $field, $value));
         }
     }
 }

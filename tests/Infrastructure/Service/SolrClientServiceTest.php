@@ -124,7 +124,7 @@ final class SolrClientServiceTest extends TestCase
 
         $selectMock = $this->createMock(SelectQuery::class);
         $resultStub = $this->createStub(SelectResult::class);
-        $responseStub = $this->createStub(SolrResponse::class);
+        $responseStub = new SolrResponse([], 0);
 
         $this->clientMock
             ->expects(self::once())

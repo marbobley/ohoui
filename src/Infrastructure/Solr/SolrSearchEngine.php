@@ -10,6 +10,9 @@ use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
 use Override;
 
+use function is_array;
+use function reset;
+
 readonly class SolrSearchEngine implements SearchEngineInterface
 {
     public function __construct(
@@ -41,11 +44,11 @@ readonly class SolrSearchEngine implements SearchEngineInterface
         $response = $this->solrClientService->search($query, $offset, $limit, $filters);
 
         $documents = [];
-        foreach ($response->getDocuments() as $docData) {
+        foreach ($response->documents as $docData) {
             $documents[] = $this->mapToDocument($docData);
         }
 
-        return new SearchResult($documents, $response->getNumFound(), $limit, $offset);
+        return new SearchResult($documents, $response->numFound, $limit, $offset);
     }
 
     #[Override]
@@ -77,6 +80,6 @@ readonly class SolrSearchEngine implements SearchEngineInterface
         /** @var mixed $value */
         $value = $data[$key] ?? '';
 
-        return \is_array($value) ? (string) \reset($value) : (string) $value;
+        return is_array($value) ? (string) reset($value) : (string) $value;
     }
 }

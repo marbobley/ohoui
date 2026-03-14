@@ -52,16 +52,13 @@ class SolrSearchEngineTest extends TestCase
         $offset = 10;
         $limit = 20;
         $filters = ['domain' => 'example.com'];
-        $responseStub = $this->createStub(SolrResponse::class);
+        $responseStub = new SolrResponse([], 0);
 
         $this->solrClientServiceMock
             ->expects(self::once())
             ->method('search')
             ->with($query, $offset, $limit, $filters)
             ->willReturn($responseStub);
-
-        $responseStub->method('getDocuments')->willReturn([]);
-        $responseStub->method('getNumFound')->willReturn(0);
 
         $results = $this->solrSearchEngine->search($query, $offset, $limit, $filters);
 
