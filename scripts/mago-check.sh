@@ -1,11 +1,8 @@
 #!/bin/bash
 
-# Script pour exécuter toutes les vérifications Mago : lint, format, analyze et guard
-# Si le premier paramètre est "true", on réduit l'output.
-
-REDUCE_OUTPUT=false
+REDUCE_OUTPUT=true
 if [ "$1" == "true" ]; then
-    REDUCE_OUTPUT=true
+    REDUCE_OUTPUT=false
 fi
 
 function run_mago() {
