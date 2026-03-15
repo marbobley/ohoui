@@ -33,7 +33,7 @@ bash scripts/check-all.sh
 ## 4. Documentation & Maintenance
 
 - [ ] **Cohérence Spécifications** : S'assurer que les changements sont en phase avec `instruction/specification.md`.
-- [ ] **Mise à jour des Guidelines** : Si une nouvelle règle a été décidée pendant la tâche, l'ajouter dans `instruction/development_guidelines.md`.
+- [ ] **Mise à jour des Guidelines** : Si une nouvelle règle a été décidée pendant la tâche, l'ajouter dans `instruction/development_guidelines.md` ou `instruction/ui_guidelines.md`.
 - [ ] **Commentaires** : Supprimer les commentaires de debug (`dump`, `var_dump`, `console.log`) et le code mort.
 - [ ] **Pas de commandes Git** : Vérifier qu'aucune commande `git add`, `git commit`, `git pull` ou `git push` n'a été exécutée.
 - [ ] **Résumé du Submit** : Résumer clairement les changements apportés et les points de vérification passés.

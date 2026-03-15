@@ -36,6 +36,7 @@ Chaque document indexé dans Solr comporte les champs suivants :
 - **Pagination :** Gestion de l'offset et de la limite pour parcourir les résultats.
 - **Filtrage :** Support du filtrage par langue et domaine (via paramètres d'URL).
 - **Patterns de recherche :** Support des jokers `*` (multi-caractères), `?` (caractère unique) et de la recherche floue `~` (distance de Levenshtein).
+- **Mise en évidence :** Highlighting des termes de recherche dans les extraits du contenu (classe CSS `.hl` définie dans `assets/styles/app.css`).
 
 ### 4.3 Interface Utilisateur
 - Page d'accueil (`/`) avec champ de recherche.
@@ -47,6 +48,5 @@ Chaque document indexé dans Solr comporte les champs suivants :
     - Navigation par pagination.
 
 ## 5. Perspectives d'Amélioration
-- Mise en évidence des termes de recherche (Highlighting).
 - Suggestion de recherche (Auto-complete).
 - Boost sur certains domaines spécifiques (gouvernementaux, éducatifs).

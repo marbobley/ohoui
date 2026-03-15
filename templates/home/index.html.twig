@@ -25,7 +25,13 @@
                     <div class="mb-4">
                         <h3 class="h5 mb-1"><a href="{{ doc.getUrl() }}">{{ doc.getTitle() }}</a></h3>
                         <div class="text-success small mb-1">{{ doc.getUrl() }}</div>
-                        <p class="mb-0">{{ doc.getContent()|default('')|u.truncate(200, '...') }}</p>
+                        <p class="mb-0">
+                            {% if doc.getHighlight() %}
+                                {{ doc.getHighlight()|raw }}
+                            {% else %}
+                                {{ doc.getContent()|default('')|u.truncate(200, '...') }}
+                            {% endif %}
+                        </p>
                         <span class="badge bg-secondary">{{ doc.getLanguage() }}</span>
                         <span class="badge bg-info">{{ doc.getDomain() }}</span>
                     </div>

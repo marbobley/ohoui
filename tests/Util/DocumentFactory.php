@@ -15,7 +15,8 @@ final class DocumentFactory
         string $url = 'https://default.test',
         string $content = 'Default Content',
         string $language = 'fr',
-        string $domain = 'default.test'
+        string $domain = 'default.test',
+        ?string $highlight = null
     ): Document {
         return new Document(
             $id ?? 'test-' . uniqid(),
@@ -23,7 +24,8 @@ final class DocumentFactory
             $url,
             $content,
             $language,
-            $domain
+            $domain,
+            $highlight
         );
     }
 

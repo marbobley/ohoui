@@ -10,8 +10,10 @@ use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
 use Override;
 
+use function htmlspecialchars;
 use function is_array;
 use function reset;
+use function str_replace;
 
 readonly class SolrSearchEngine implements SearchEngineInterface
 {
@@ -45,10 +47,42 @@ readonly class SolrSearchEngine implements SearchEngineInterface
 
         $documents = [];
         foreach ($response->documents as $docData) {
-            $documents[] = $this->mapToDocument($docData);
+            $id = (string) ($docData['id'] ?? '');
+            $highlight = null;
+
+            $docHighlighting = $response->highlighting[$id] ?? [];
+            $contentHighlights = $docHighlighting['content'] ?? [];
+
+            if ([] !== $contentHighlights) {
+                $highlight = (string) reset($contentHighlights);
+                $highlight = $this->sanitizeHighlight($highlight);
+            }
+
+            $documents[] = $this->mapToDocument($docData, $highlight);
         }
 
         return new SearchResult($documents, $response->numFound, $limit, $offset);
+    }
+
+    private function sanitizeHighlight(string $highlight): string
+    {
+        // On échappe tout le HTML
+        $sanitized = htmlspecialchars($highlight, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8');
+
+        // On ré-autorise uniquement les balises <em> avec la classe "hl" injectées par Solr
+        $sanitized = str_replace(
+            [
+                htmlspecialchars('<em class="hl">', ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8'),
+                htmlspecialchars('</em>', ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8'),
+            ],
+            [
+                '<em class="hl">',
+                '</em>',
+            ],
+            $sanitized
+        );
+
+        return $sanitized;
     }
 
     #[Override]
@@ -60,7 +94,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     /**
      * @param array<array-key, mixed> $docData
      */
-    private function mapToDocument(array $docData): Document
+    private function mapToDocument(array $docData, ?string $highlight = null): Document
     {
         return new Document(
             $this->extractStringValue($docData, 'id'),
@@ -69,6 +103,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             $this->extractStringValue($docData, 'content'),
             $this->extractStringValue($docData, 'language'),
             $this->extractStringValue($docData, 'domain'),
+            $highlight,
         );
     }
 

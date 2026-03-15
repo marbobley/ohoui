@@ -52,7 +52,20 @@ class SolrSearchEngineTest extends TestCase
         $offset = 10;
         $limit = 20;
         $filters = ['domain' => 'example.com'];
-        $responseStub = new SolrResponse([], 0);
+        $responseStub = new SolrResponse([
+            [
+                'id' => 'doc-1',
+                'title' => 'Title 1',
+                'url' => 'https://t1.com',
+                'content' => 'Content with test keyword',
+                'language' => 'en',
+                'domain' => 't1.com',
+            ],
+        ], 1, [
+            'doc-1' => [
+                'content' => ['Content with <em class="hl">test</em> keyword'],
+            ],
+        ]);
 
         $this->solrClientServiceMock
             ->expects(self::once())
@@ -62,8 +75,11 @@ class SolrSearchEngineTest extends TestCase
 
         $results = $this->solrSearchEngine->search($query, $offset, $limit, $filters);
 
-        self::assertEmpty($results->getDocuments());
-        self::assertEquals(0, $results->getTotalCount());
+        self::assertCount(1, $results->getDocuments());
+        $doc = $results->getDocuments()[0];
+        self::assertEquals('doc-1', $doc->getId());
+        self::assertEquals('Content with <em class="hl">test</em> keyword', $doc->getHighlight());
+        self::assertEquals(1, $results->getTotalCount());
         self::assertEquals($offset, $results->getOffset());
         self::assertEquals($limit, $results->getLimit());
     }

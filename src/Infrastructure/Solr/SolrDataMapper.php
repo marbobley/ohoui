@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Solr;
 
 use Override;
+use Solarium\QueryType\Select\Query\Query as SelectQuery;
 use Solarium\QueryType\Select\Result\Document;
 use Solarium\QueryType\Select\Result\Result;
 
@@ -20,6 +21,21 @@ class SolrDataMapper implements SolrDataMapperInterface
             $documents[] = $doc->getFields();
         }
 
-        return new SolrResponse($documents, $result->getNumFound() ?? 0);
+        try {
+            /** @var mixed $highlighting */
+            $highlighting = $result->getComponent(SelectQuery::COMPONENT_HIGHLIGHTING);
+        } catch (\Solarium\Exception\UnexpectedValueException) {
+            $highlighting = null;
+        }
+
+        $rawHighlighting = [];
+        if ($highlighting instanceof \Solarium\Component\Result\Highlighting\Highlighting) {
+            foreach ($highlighting->getResults() as $docId => $highlight) {
+                $rawHighlighting[(string) $docId] = $highlight->getFields();
+            }
+        }
+
+        /** @var array<string, array<string, string[]>> $rawHighlighting */
+        return new SolrResponse($documents, $result->getNumFound() ?? 0, $rawHighlighting);
     }
 }

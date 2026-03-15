@@ -18,9 +18,20 @@ class SolrQueryBuilder implements SolrQueryBuilderInterface
     {
         $this->configureQuery($select, $query);
         $this->configureFilters($select, $filters);
+        $this->configureHighlighting($select);
 
         $select->setStart($start);
         $select->setRows($rows);
+    }
+
+    private function configureHighlighting(SelectQuery $select): void
+    {
+        $hl = $select->getHighlighting();
+        $hl->setFields('content,title');
+        $hl->setSimplePrefix('<em class="hl">');
+        $hl->setSimplePostfix('</em>');
+        $hl->setFragsize(200);
+        $hl->setSnippets(1);
     }
 
     private function configureQuery(SelectQuery $select, string $query): void
