@@ -67,22 +67,20 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     private function sanitizeHighlight(string $highlight): string
     {
         // On échappe tout le HTML
-        $sanitized = htmlspecialchars($highlight, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8');
+        $sanitized = htmlspecialchars($highlight, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8');
 
         // On ré-autorise uniquement les balises <em> avec la classe "hl" injectées par Solr
-        $sanitized = str_replace(
+        return str_replace(
             [
-                htmlspecialchars('<em class="hl">', ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8'),
-                htmlspecialchars('</em>', ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8'),
+                htmlspecialchars('<em class="hl">', ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8'),
+                htmlspecialchars('</em>', ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8'),
             ],
             [
                 '<em class="hl">',
                 '</em>',
             ],
-            $sanitized
+            $sanitized,
         );
-
-        return $sanitized;
     }
 
     #[Override]
