@@ -35,6 +35,7 @@ Chaque document indexé dans Solr comporte les champs suivants :
 - **Boosting :** Les mots-clés trouvés dans le titre ont un poids supérieur (x2.0) à ceux du contenu.
 - **Pagination :** Gestion de l'offset et de la limite pour parcourir les résultats.
 - **Filtrage :** Support du filtrage par langue et domaine (via paramètres d'URL).
+- **Patterns de recherche :** Support des jokers `*` (multi-caractères), `?` (caractère unique) et de la recherche floue `~` (distance de Levenshtein).
 
 ### 4.3 Interface Utilisateur
 - Page d'accueil (`/`) avec champ de recherche.
