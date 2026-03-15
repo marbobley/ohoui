@@ -36,6 +36,7 @@ services:
                         port: '%env(int:SOLR_PORT)%'
                         path: '%env(SOLR_PATH)%'
                         core: '%env(SOLR_CORE)%'
+                        timeout: 10
 
     Solarium\Core\Client\Adapter\AdapterInterface:
         class: Solarium\Core\Client\Adapter\Curl

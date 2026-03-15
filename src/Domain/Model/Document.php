@@ -13,7 +13,13 @@ final readonly class Document
         private string $content,
         private string $language,
         private string $domain,
+        private ?string $highlight = null,
     ) {}
+
+    public function getHighlight(): ?string
+    {
+        return $this->highlight;
+    }
 
     public function getId(): string
     {

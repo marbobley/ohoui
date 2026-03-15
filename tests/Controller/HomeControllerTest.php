@@ -17,25 +17,26 @@ final class HomeControllerTest extends WebTestCase
         $this->assertSelectorTextContains('h1', 'Ohoui');
     }
 
-    public function testSearchWithNoResultsDisplaysMessage(): void
+    public function testSearchWithHighlightingDisplaysEmTag(): void
     {
         $client = static::createClient();
-
-        // On indexe au moins un document pour initialiser les champs dans Solr (dynamic fields)
-        // et éviter l'erreur "undefined field title" si le core est vide.
         $container = static::getContainer();
         $indexUseCase = $container->get(\App\Application\Service\IndexUseCase::class);
+
+        $term = 'specifique' . \uniqid();
         $indexUseCase->execute(new \App\Domain\Model\Document(
-            'init-test',
-            'Initialisation Solr',
-            'https://test.com',
-            'Contenu initial pour créer les champs',
+            'hl-test',
+            'Titre avec ' . $term,
+            'https://test.com/hl',
+            'Le contenu contient le mot ' . $term . ' pour le test.',
             'fr',
             'test.com'
         ));
 
-        $client->request('GET', '/?q=mot_cle_inexistant_' . \uniqid());
+        $client->request('GET', '/?q=' . $term);
 
         $this->assertResponseIsSuccessful();
+        $this->assertSelectorExists('em.hl');
+        $this->assertSelectorTextContains('em.hl', $term);
     }
 }

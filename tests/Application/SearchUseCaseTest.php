@@ -20,7 +20,7 @@ class SearchUseCaseTest extends TestCase
         $filters = ['language' => 'fr'];
 
         $documents = [
-            DocumentFactory::create(),
+            DocumentFactory::create(highlight: '<em>test</em>'),
         ];
         $expectedResults = new SearchResult(
             documents: $documents,
@@ -39,5 +39,6 @@ class SearchUseCaseTest extends TestCase
         $results = $useCase->execute($query, $offset, $limit, $filters);
 
         static::assertSame($expectedResults, $results);
+        static::assertSame('<em>test</em>', $results->getDocuments()[0]->getHighlight());
     }
 }
