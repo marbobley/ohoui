@@ -7,6 +7,7 @@ namespace App\Tests\Command;
 use App\Application\Service\SearchUseCase;
 use App\Command\SearchCommand;
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchCriteria;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use PHPUnit\Framework\TestCase;
@@ -26,7 +27,7 @@ final class SearchCommandTest extends TestCase
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects(self::once())
             ->method('search')
-            ->with($query, 0, 10)
+            ->with(new SearchCriteria($query, 1, 10, []))
             ->willReturn($searchResult);
 
         $searchUseCase = new SearchUseCase($searchEngineMock);
@@ -95,7 +96,7 @@ final class SearchCommandTest extends TestCase
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects(self::once())
             ->method('search')
-            ->with($query, 0, 10, $filters)
+            ->with(new SearchCriteria($query, 1, 10, $filters))
             ->willReturn($searchResult);
 
         $searchUseCase = new SearchUseCase($searchEngineMock);
@@ -126,7 +127,7 @@ final class SearchCommandTest extends TestCase
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects(self::once())
             ->method('search')
-            ->with($query, $offset, $limit, [])
+            ->with(new SearchCriteria($query, 3, $limit, []))
             ->willReturn($searchResult);
 
         $searchUseCase = new SearchUseCase($searchEngineMock);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Integration\Infrastructure\Solr;
 
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchCriteria;
 use App\Infrastructure\Solr\SolrSearchEngine;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -61,7 +62,7 @@ final class SolrSearchPatternsIntegrationTest extends KernelTestCase
     public function testWildcardStar(): void
     {
         // Recherche avec 'cha*' doit trouver chat, château (si normalisé), chantier
-        $result = $this->searchEngine->search('cha*');
+        $result = $this->searchEngine->search(new SearchCriteria('cha*'));
 
         $ids = array_map(fn($doc) => $doc->getId(), $result->getDocuments());
 
@@ -75,7 +76,7 @@ final class SolrSearchPatternsIntegrationTest extends KernelTestCase
     {
         // Recherche avec 'ch?t' doit trouver chat (4 caractères)
         // Attention: Selon la configuration Solr, château peut être tokenizé différemment
-        $result = $this->searchEngine->search('ch?t');
+        $result = $this->searchEngine->search(new SearchCriteria('ch?t'));
 
         $ids = array_map(fn($doc) => $doc->getId(), $result->getDocuments());
 
@@ -86,7 +87,7 @@ final class SolrSearchPatternsIntegrationTest extends KernelTestCase
     public function testFuzzySearch(): void
     {
         // Recherche avec 'chat~' doit trouver chat, et potentiellement d'autres mots proches
-        $result = $this->searchEngine->search('chat~');
+        $result = $this->searchEngine->search(new SearchCriteria('chat~'));
 
         $ids = array_map(fn($doc) => $doc->getId(), $result->getDocuments());
 
@@ -95,7 +96,7 @@ final class SolrSearchPatternsIntegrationTest extends KernelTestCase
         // 'chant' est proche de 'chat' (distance de 1)
         // doc-3 contient "chantier", si Solr indexe les racines ou si "chant" est présent
         // Testons avec une faute de frappe
-        $result2 = $this->searchEngine->search('shat~');
+        $result2 = $this->searchEngine->search(new SearchCriteria('shat~'));
         $ids2 = array_map(fn($doc) => $doc->getId(), $result2->getDocuments());
         $this->assertContains('doc-1', $ids2, 'Devrait trouver "chat" pour "shat~"');
     }
