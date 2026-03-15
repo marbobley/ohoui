@@ -30,7 +30,13 @@ Pour une vérification rapide de tous les points ci-dessus, utiliser le script g
 bash scripts/check-all.sh
 ```
 
-## 4. Documentation & Maintenance
+## 4. Sécurité & Bonnes Pratiques
+
+- [ ] **Filtrage XSS (Twig)** : Vérifier chaque utilisation du filtre `|raw` dans les templates. S'assurer que la donnée a été préalablement nettoyée (ex: `sanitizeHighlight`).
+- [ ] **Validation des Entrées** : S'assurer que toutes les données provenant de l'utilisateur (requêtes GET/POST) sont validées ou échappées.
+- [ ] **Secrets** : Vérifier qu'aucun mot de passe, clé d'API ou secret n'est écrit en dur dans le code.
+
+## 5. Documentation & Maintenance
 
 - [ ] **Cohérence Spécifications** : S'assurer que les changements sont en phase avec `instruction/specification.md`.
 - [ ] **Mise à jour des Guidelines** : Si une nouvelle règle a été décidée pendant la tâche, l'ajouter dans `instruction/development_guidelines.md` ou `instruction/ui_guidelines.md`.

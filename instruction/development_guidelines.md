@@ -32,7 +32,9 @@ Le code source dans `src/` doit être organisé comme suit :
 Les tests doivent être organisés parallèlement au code source dans `tests/` :
 - `tests/Domain/`, `tests/Application/`, `tests/Infrastructure/`, `tests/Integration/`, `tests/Controller/`.
 
-### Qualité et Sécurité (PHP)
+### Qualité et Sécurité (PHP & Twig)
+
+- **Sécurité (XSS) :** L'usage de `|raw` dans Twig est **interdit** pour toute donnée n'ayant pas été explicitement et rigoureusement nettoyée au préalable (voir `instruction/security_checklist.md`).
 - **Appels de Fonctions Globales :** Préférer l'utilisation de `use function <nom_de_la_fonction>;` en haut du fichier plutôt que l'utilisation de l'anti-slash (`\`) directement dans le code (ex: `use function str_contains;`).
 - **Linter :** Utiliser `mago` pour valider le code avant de soumettre.
 
