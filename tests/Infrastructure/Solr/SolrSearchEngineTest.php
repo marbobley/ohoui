@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Infrastructure\Solr;
 
+use App\Domain\Model\SearchCriteria;
 use App\Infrastructure\Solr\SolrResponse;
 use App\Infrastructure\Solr\SolrSearchEngine;
 use App\Service\SolrClientServiceInterface;
@@ -49,9 +50,13 @@ class SolrSearchEngineTest extends TestCase
     public function testSearchDelegatesToClientService(): void
     {
         $query = 'test';
-        $offset = 10;
+        $page = 2;
         $limit = 20;
         $filters = ['domain' => 'example.com'];
+        $offset = 20;
+
+        $criteria = new SearchCriteria($query, $page, $limit, $filters);
+
         $responseStub = new SolrResponse([
             [
                 'id' => 'doc-1',
@@ -73,7 +78,7 @@ class SolrSearchEngineTest extends TestCase
             ->with($query, $offset, $limit, $filters)
             ->willReturn($responseStub);
 
-        $results = $this->solrSearchEngine->search($query, $offset, $limit, $filters);
+        $results = $this->solrSearchEngine->search($criteria);
 
         self::assertCount(1, $results->getDocuments());
         $doc = $results->getDocuments()[0];

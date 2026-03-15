@@ -7,8 +7,10 @@ namespace App\Tests\Integration\Application;
 use App\Application\Service\IndexUseCase;
 use App\Application\Service\SearchUseCase;
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchCriteria;
 use App\Tests\Util\DocumentFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
 use function str_repeat;
 
 final class IndexUseCaseIntegrationTest extends KernelTestCase
@@ -35,7 +37,7 @@ final class IndexUseCaseIntegrationTest extends KernelTestCase
 
         $this->indexUseCase->execute($doc);
 
-        $results = $this->searchUseCase->execute('id:' . $doc->getId());
+        $results = $this->searchUseCase->execute(new SearchCriteria('id:' . $doc->getId()));
         static::assertNotEmpty($results->getDocuments());
         static::assertSame('test-integration.com', $results->getDocuments()[0]->getDomain());
     }
@@ -53,7 +55,7 @@ final class IndexUseCaseIntegrationTest extends KernelTestCase
 
         $this->indexUseCase->execute($doc);
 
-        $results = $this->searchUseCase->execute('id:' . $doc->getId());
+        $results = $this->searchUseCase->execute(new SearchCriteria('id:' . $doc->getId()));
         static::assertNotEmpty($results->getDocuments());
         static::assertSame('Titre avec "guillemets" & spéciaux : éàïô €', $results->getDocuments()[0]->getTitle());
         static::assertSame($longContent, $results->getDocuments()[0]->getContent());
@@ -65,7 +67,7 @@ final class IndexUseCaseIntegrationTest extends KernelTestCase
 
         $this->indexUseCase->execute($doc);
 
-        $results = $this->searchUseCase->execute('id:' . $doc->getId());
+        $results = $this->searchUseCase->execute(new SearchCriteria('id:' . $doc->getId()));
         static::assertNotEmpty($results->getDocuments());
         static::assertSame('', $results->getDocuments()[0]->getContent());
     }

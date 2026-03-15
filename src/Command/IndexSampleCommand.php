@@ -38,6 +38,34 @@ class IndexSampleCommand extends Command
     }
 
     /**
+     * @param int $count
+     * @param SymfonyStyle $io
+     * @return void
+     */
+    private function populate(int $count, SymfonyStyle $io): void
+    {
+        for ($i = 0; $i < $count; $i++) {
+            $generated = $this->generateRandomDocument();
+            $this->indexDocument($generated);
+            $this->printMessage($i, $count, $io, $generated['title']);
+        }
+    }
+
+    /**
+     * @param int $i
+     * @param int $count
+     * @param SymfonyStyle $io
+     * @param $title
+     * @return void
+     */
+    private function printMessage(int $i, int $count, SymfonyStyle $io, $title): void
+    {
+        if ((($i + 1) % 10) === 0 || $count <= 10) {
+            $io->note(sprintf('Généré (%d/%d) : %s', $i + 1, $count, (string) $title));
+        }
+    }
+
+    /**
      * @throws InvalidArgumentException
      */
     #[Override]
@@ -144,13 +172,7 @@ class IndexSampleCommand extends Command
 
         if ($count > 0) {
             $io->section(sprintf('Génération de %d documents aléatoires...', $count));
-            for ($i = 0; $i < $count; $i++) {
-                $generated = $this->generateRandomDocument();
-                $this->indexDocument($generated);
-                if ((($i + 1) % 10) === 0 || $count <= 10) {
-                    $io->note(sprintf('Généré (%d/%d) : %s', $i + 1, $count, $generated['title']));
-                }
-            }
+            $this->populate($count, $io);
         }
 
         $io->success(sprintf('%d documents indexés avec succès.', count($samples) + $count));

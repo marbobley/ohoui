@@ -65,8 +65,9 @@ final class SolrQueryBuilderTest extends TestCase
         $rows = 10;
         $filters = [];
 
-        $this->selectMock->expects(self::never())
-            ->method('getHelper');
+        $this->selectMock->expects(self::once())
+            ->method('getHelper')
+            ->willReturn($this->helperMock);
 
         $this->selectMock->expects(self::once())
             ->method('setQuery')
@@ -86,7 +87,9 @@ final class SolrQueryBuilderTest extends TestCase
             ->method('getHelper')
             ->willReturn($this->helperMock);
 
-        $this->helperMock->method('escapeTerm')->willReturn('test');
+        $this->helperMock->method('escapeTerm')->willReturnCallback(function ($term) {
+            return $term;
+        });
 
         // On s'attend à ce que deux FilterQuery soient créés
         $filterQueryMock1 = $this->createMock(\Solarium\QueryType\Select\Query\FilterQuery::class);

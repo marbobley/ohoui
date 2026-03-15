@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Repository;
 
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchCriteria;
 use App\Domain\Model\SearchResult;
 
 interface SearchEngineInterface
@@ -13,10 +14,7 @@ interface SearchEngineInterface
 
     public function purge(): void;
 
-    /**
-     * @param array<string, string> $filters
-     */
-    public function search(string $query, int $offset = 0, int $limit = 10, array $filters = []): SearchResult;
+    public function search(SearchCriteria $criteria): SearchResult;
 
     /**
      * @return array<string, mixed>

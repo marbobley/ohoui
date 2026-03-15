@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Solr;
 
 use App\Domain\Model\Document;
+use App\Domain\Model\SearchCriteria;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
@@ -41,9 +42,14 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     }
 
     #[Override]
-    public function search(string $query, int $offset = 0, int $limit = 10, array $filters = []): SearchResult
+    public function search(SearchCriteria $criteria): SearchResult
     {
-        $response = $this->solrClientService->search($query, $offset, $limit, $filters);
+        $response = $this->solrClientService->search(
+            $criteria->getQuery(),
+            $criteria->getOffset(),
+            $criteria->getLimit(),
+            $criteria->getFilters(),
+        );
 
         $documents = [];
         foreach ($response->documents as $docData) {
@@ -61,23 +67,28 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             $documents[] = $this->mapToDocument($docData, $highlight);
         }
 
-        return new SearchResult($documents, $response->numFound, $limit, $offset);
+        return new SearchResult($documents, $response->numFound, $criteria->getLimit(), $criteria->getOffset());
     }
 
     private function sanitizeHighlight(string $highlight): string
     {
-        // On échappe tout le HTML
+        // On définit les balises de confiance utilisées par SolrQueryBuilder
+        $prefix = '<em class="hl">';
+        $postfix = '</em>';
+
+        // On échappe tout le HTML de manière sécurisée
         $sanitized = htmlspecialchars($highlight, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8');
 
-        // On ré-autorise uniquement les balises <em> avec la classe "hl" injectées par Solr
+        // On ré-autorise uniquement les balises EXACTES générées par Solr
+        // L'échappement par htmlspecialchars transforme les balises en &lt;em class=&quot;hl&quot;&gt;
         return str_replace(
             [
-                htmlspecialchars('<em class="hl">', ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8'),
-                htmlspecialchars('</em>', ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8'),
+                htmlspecialchars($prefix, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8'),
+                htmlspecialchars($postfix, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8'),
             ],
             [
-                '<em class="hl">',
-                '</em>',
+                $prefix,
+                $postfix,
             ],
             $sanitized,
         );

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Application\Service\SearchUseCase;
+use App\Domain\Model\SearchCriteria;
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -84,7 +85,9 @@ final class SearchCommand extends Command
         }
 
         try {
-            $result = $this->searchUseCase->execute($query, $offset, $limit, $filters);
+            $page = ($offset / $limit) + 1;
+            $criteria = new SearchCriteria($query, (int) $page, $limit, $filters);
+            $result = $this->searchUseCase->execute($criteria);
 
             if (0 === $result->getTotalCount()) {
                 $io->warning('Aucun résultat trouvé.');
