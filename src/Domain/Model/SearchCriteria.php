@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Model;
 
 use Webmozart\Assert\Assert;
+use Webmozart\Assert\InvalidArgumentException;
 
 final readonly class SearchCriteria
 {
     /**
      * @param array<string, string> $filters
+     * @throws InvalidArgumentException
      */
     public function __construct(
         private string $query,

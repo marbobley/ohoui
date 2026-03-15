@@ -21,8 +21,12 @@ integrations = ["phpunit", "symfony"]
 ambiguous-function-call = { enabled = true }
 literal-named-argument = { enabled = true }
 halstead = { effort-threshold = 7000 }
-too-many-methods = { enabled = true, threshold = 25 }
-excessive-parameter-list = { enabled = true, threshold = 10 }
+too-many-methods = { enabled = true, threshold = 15 }
+too-many-properties = { enabled = true, threshold = 10 }
+excessive-parameter-list = { enabled = true, threshold = 8 }
+cyclomatic-complexity = { enabled = true, threshold = 10 }
+kan-defect = { enabled = true, threshold = 10 }
+excessive-nesting = { enabled = true, threshold = 3 }
 no-boolean-flag-parameter = { enabled = true }
 no-else-clause = { enabled = true }
 
@@ -51,7 +55,13 @@ layering = [
 
 # Crée des alias réutilisables pour les groupes de namespaces.
 [guard.perimeter.layers]
-core = ["Psr\\", "Override", "LogicException", "RuntimeException", "Exception", "sprintf", "str_contains", "is_array", "reset", "count", "array_rand", "mb_strtolower", "preg_match", "preg_replace", "uniqid", "is_numeric", "explode", "htmlspecialchars", "str_replace"]
+core = ["Psr\\",
+"Webmozart\\Assert\\",
+"Override", "LogicException",
+"RuntimeException", "Exception","InvalidArgumentException",
+"sprintf", "str_contains", "is_array",
+"reset", "count", "array_rand", "mb_strtolower",
+"preg_match", "preg_replace", "uniqid", "is_numeric", "explode", "htmlspecialchars", "str_replace"]
 framework = ["Symfony\\"]
 persistence = ["Doctrine\\", "Solarium\\"]
 

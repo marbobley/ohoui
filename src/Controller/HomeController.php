@@ -6,8 +6,10 @@ namespace App\Controller;
 
 use App\Application\Service\SearchUseCase;
 use App\Domain\Model\SearchCriteria;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
+use Symfony\Component\HttpFoundation\Exception\UnexpectedValueException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,6 +20,7 @@ final class HomeController extends AbstractController
      * @param Request $request
      * @param SearchUseCase $searchUseCase
      * @return Response
+     * @throws UnexpectedValueException
      */
     #[Route('/', name: 'app_home')]
     public function index(Request $request, SearchUseCase $searchUseCase): Response
@@ -33,7 +36,7 @@ final class HomeController extends AbstractController
             try {
                 $criteria = new SearchCriteria($query, $page, 10, $filters);
                 $results = $searchUseCase->execute($criteria);
-            } catch (\InvalidArgumentException $e) {
+            } catch (InvalidArgumentException $e) {
                 throw new BadRequestException($e->getMessage(), previous: $e);
             }
         }
