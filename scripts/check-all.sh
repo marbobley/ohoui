@@ -24,7 +24,16 @@ fi
 bash scripts/run-tests.sh $MODE
 TESTS_STATUS=$?
 
-if [ $MAGO_STATUS -ne 0 ] || [ $TESTS_STATUS -ne 0 ]; then
+if [ "$REDUCE" == "false" ]; then
+    echo -e "\n========================================"
+    echo "      NUMBER LINE CHECK                "
+    echo "========================================"
+fi
+
+bash scripts/number-line-check.sh $MODE
+NL_STATUS=$?
+
+if [ $MAGO_STATUS -ne 0 ] || [ $TESTS_STATUS -ne 0 ] || [ $NL_STATUS -ne 0 ]; then
     [ "$REDUCE" == "false" ] && echo -e "\n[FAIL] Certains contrôles ont échoué."
     exit 1
 fi
