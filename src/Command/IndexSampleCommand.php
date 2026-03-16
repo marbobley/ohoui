@@ -60,7 +60,7 @@ class IndexSampleCommand extends Command
     private function printMessage(int $i, int $count, SymfonyStyle $io, string $title): void
     {
         if ((($i + 1) % 10) === 0 || $count <= 10) {
-            $io->note(sprintf('Généré (%d/%d) : %s', $i + 1, $count, (string) $title));
+            $io->note(sprintf('Généré (%d/%d) : %s', $i + 1, $count, $title));
         }
     }
 

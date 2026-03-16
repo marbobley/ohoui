@@ -39,7 +39,7 @@ class SampleDataProvider
         };
 
         $id = uniqid(prefix: 'rand_', more_entropy: true);
-        $slug = mb_strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $subject));
+        $slug = mb_strtolower((string) preg_replace('/[^a-z0-9]+/i', replacement: '-', subject: $subject));
         $domain = $slug . '.example.com';
 
         return [
