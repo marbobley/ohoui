@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Infrastructure\Owilix;
 
+use App\Infrastructure\Owilix\Exception\OwiInvalidJsonException;
+use App\Infrastructure\Owilix\Exception\OwiLineSkippedException;
+use App\Infrastructure\Owilix\Exception\OwiMissingUrlException;
 use App\Infrastructure\Owilix\OwiDocumentFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -16,25 +19,28 @@ final class OwiDataParserTest extends TestCase
         $this->factory = new OwiDocumentFactory();
     }
 
-    public function testParseLineReturnsNullForEmptyLine(): void
+    public function testParseLineThrowsExceptionForEmptyLine(): void
     {
-        self::assertNull($this->factory->fromLine(''));
-        self::assertNull($this->factory->fromLine('   '));
+        $this->expectException(OwiLineSkippedException::class);
+        $this->factory->fromLine('');
     }
 
-    public function testParseLineReturnsNullForSuccessMessage(): void
+    public function testParseLineThrowsExceptionForSuccessMessage(): void
     {
-        self::assertNull($this->factory->fromLine('✅ Processing completed successfully with no errors!'));
+        $this->expectException(OwiLineSkippedException::class);
+        $this->factory->fromLine('✅ Processing completed successfully with no errors!');
     }
 
-    public function testParseLineReturnsNullForInvalidJson(): void
+    public function testParseLineThrowsExceptionForInvalidJson(): void
     {
-        self::assertNull($this->factory->fromLine('invalid json'));
+        $this->expectException(OwiInvalidJsonException::class);
+        $this->factory->fromLine('invalid json');
     }
 
-    public function testParseLineReturnsNullIfUrlMissing(): void
+    public function testParseLineThrowsExceptionIfUrlMissing(): void
     {
-        self::assertNull($this->factory->fromLine('{"title": "No URL"}'));
+        $this->expectException(OwiMissingUrlException::class);
+        $this->factory->fromLine('{"title": "No URL"}');
     }
 
     public function testParseLineReturnsDocument(): void

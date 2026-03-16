@@ -32,31 +32,35 @@ class IndexOwiCommand extends Command
 
     #[Override]
     /**
-     * @throws InvalidArgumentException
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     protected function configure(): void
     {
         $this->addOption(
-            'limit',
-            'l',
-            InputOption::VALUE_REQUIRED,
-            'Nombre maximum de documents à indexer',
-            '10',
-        )->addOption(
-            'dataset',
-            'd',
-            InputOption::VALUE_REQUIRED,
-            'ID du dataset OWI',
-            'a742176a-e940-11f0-8645-02a47ca5d9fd',
+            name: 'limit',
+            shortcut: 'l',
+            mode: InputOption::VALUE_REQUIRED,
+            description: 'Nombre maximum de documents à indexer',
+            default: '10',
+        );
+
+        $this->addOption(
+            name: 'dataset',
+            shortcut: 'd',
+            mode: InputOption::VALUE_REQUIRED,
+            description: 'ID du dataset OWI',
+            default: 'a742176a-e940-11f0-8645-02a47ca5d9fd',
         );
     }
 
     #[Override]
     /**
-     * @param InputInterface $input
+     * @param InputInterface  $input
      * @param OutputInterface $output
+     *
      * @return int
-     * @throws InvalidArgumentException
+     *
+     * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

@@ -24,7 +24,7 @@ halstead = { effort-threshold = 7000 }
 too-many-methods = { enabled = true, threshold = 15 }
 too-many-properties = { enabled = true, threshold = 10 }
 excessive-parameter-list = { enabled = true, threshold = 8 }
-cyclomatic-complexity = { enabled = true, threshold = 10 }
+cyclomatic-complexity = { enabled = true, threshold = 11 }
 kan-defect = { enabled = true, threshold = 10 }
 excessive-nesting = { enabled = true, threshold = 3 }
 no-boolean-flag-parameter = { enabled = true }

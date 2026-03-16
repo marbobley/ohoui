@@ -6,7 +6,9 @@ namespace App\Infrastructure\Owilix;
 
 use App\Domain\Model\Document;
 use App\Domain\Repository\OwiDataExtractorInterface;
+use App\Infrastructure\Owilix\Exception\OwilixException;
 use Exception;
+use Generator;
 use Override;
 use Symfony\Component\Process\Process;
 
@@ -53,14 +55,26 @@ final readonly class DockerOwiDataExtractor implements OwiDataExtractorInterface
         $process->run();
 
         if (!$process->isSuccessful()) {
-            throw new Exception(trim($process->getErrorOutput()));
+            throw new OwilixException(trim($process->getErrorOutput()));
         }
 
         foreach (explode("\n", trim($process->getOutput())) as $line) {
-            $doc = $this->factory->fromLine($line);
-            if ($doc) {
-                yield $doc;
+            try {
+                $doc = $this->factory->fromLine($line);
+                $this->yieldDocIfPresent($doc);
+            } catch (OwilixException) {
+                continue;
             }
+        }
+    }
+
+    /**
+     * @param Document|null $doc
+     * @return Generator
+     */ public function yieldDocIfPresent(?Document $doc): Generator
+    {
+        if ($doc) {
+            yield $doc;
         }
     }
 }
