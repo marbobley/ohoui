@@ -88,3 +88,7 @@ jobs:
                   php bin/console app:index-sample
             - name: Execute tests
               run: vendor/bin/phpunit --display-notices
+            - name: Compile numberLine script
+              run: gcc scripts/numberLine/numberLine.c -o scripts/numberLine/numberLine
+            - name: Analyze file lengths
+              run: ./scripts/numberLine/numberLine 150 src

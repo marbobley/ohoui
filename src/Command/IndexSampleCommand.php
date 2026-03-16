@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Application\Service\IndexUseCase;
 use App\Domain\Model\Document;
+use App\Service\SampleDataProvider;
 use LogicException;
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -16,23 +17,21 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-use function array_rand;
 use function count;
 use function is_numeric;
-use function mb_strtolower;
-use function preg_replace;
 use function sprintf;
-use function uniqid;
 
 #[AsCommand(name: 'app:index-sample', description: 'Indexe un échantillon de données simulant l\'OWI dans Solr')]
 class IndexSampleCommand extends Command
 {
     /**
      * @param IndexUseCase $indexUseCase
+     * @param SampleDataProvider $sampleDataProvider
      * @throws LogicException
      */
     public function __construct(
         private readonly IndexUseCase $indexUseCase,
+        private readonly SampleDataProvider $sampleDataProvider,
     ) {
         parent::__construct();
     }
@@ -45,7 +44,7 @@ class IndexSampleCommand extends Command
     private function populate(int $count, SymfonyStyle $io): void
     {
         for ($i = 0; $i < $count; $i++) {
-            $generated = $this->generateRandomDocument();
+            $generated = $this->sampleDataProvider->generateRandomDocument();
             $this->indexDocument($generated);
             $this->printMessage($i, $count, $io, $generated['title']);
         }
@@ -55,10 +54,10 @@ class IndexSampleCommand extends Command
      * @param int $i
      * @param int $count
      * @param SymfonyStyle $io
-     * @param $title
+     * @param string $title
      * @return void
      */
-    private function printMessage(int $i, int $count, SymfonyStyle $io, $title): void
+    private function printMessage(int $i, int $count, SymfonyStyle $io, string $title): void
     {
         if ((($i + 1) % 10) === 0 || $count <= 10) {
             $io->note(sprintf('Généré (%d/%d) : %s', $i + 1, $count, (string) $title));
@@ -164,7 +163,7 @@ class IndexSampleCommand extends Command
         $countValue = $input->getOption('count');
         $count = is_numeric($countValue) ? (int) $countValue : 0;
 
-        $samples = $this->getSamples();
+        $samples = $this->sampleDataProvider->getSamples();
         foreach ($samples as $sample) {
             $this->indexDocument($sample);
             $io->note(sprintf('Indexé : %s', $sample['title']));
@@ -195,104 +194,5 @@ class IndexSampleCommand extends Command
                 $data['domain'],
             ),
         );
-    }
-
-    /**
-     * @return array{subjects: array<string, string[]>, adjectives: array<string, string[]>, verbs: array<string, string[]>}
-     */
-    private function getRandomData(): array
-    {
-        return [
-            'subjects' => [
-                'fr' => [
-                    'L\'écologie',
-                    'La cuisine',
-                    'Le sport',
-                    'La musique',
-                    'Le cinéma',
-                    'L\'espace',
-                    'La robotique',
-                    'Le jardinage',
-                    'Le voyage',
-                    'La santé',
-                ],
-                'en' => [
-                    'Ecology',
-                    'Cooking',
-                    'Sports',
-                    'Music',
-                    'Cinema',
-                    'Space',
-                    'Robotics',
-                    'Gardening',
-                    'Travel',
-                    'Health',
-                ],
-                'de' => [
-                    'Ökologie',
-                    'Kochen',
-                    'Sport',
-                    'Musik',
-                    'Kino',
-                    'Weltraum',
-                    'Robotik',
-                    'Gartenarbeit',
-                    'Reisen',
-                    'Gesundheit',
-                ],
-            ],
-            'adjectives' => [
-                'fr' => ['moderne', 'durable', 'futuriste', 'traditionnel', 'passionnant', 'essentiel'],
-                'en' => ['modern', 'sustainable', 'futuristic', 'traditional', 'exciting', 'essential'],
-                'de' => ['modern', 'nachhaltig', 'futuristisch', 'traditionell', 'spannend', 'wesentlich'],
-            ],
-            'verbs' => [
-                'fr' => ['découvrir', 'comprendre', 'explorer', 'analyser', 'partager', 'améliorer'],
-                'en' => ['discover', 'understand', 'explore', 'analyze', 'share', 'improve'],
-                'de' => ['entdecken', 'verstehen', 'erkunden', 'analysieren', 'teilen', 'verbessern'],
-            ],
-        ];
-    }
-
-    /**
-     * @return array{id: string, title: string, url: string, content: string, language: string, domain: string}
-     */
-    private function generateRandomDocument(): array
-    {
-        $data = $this->getRandomData();
-        $langs = ['fr', 'en', 'de'];
-        $lang = $langs[array_rand($langs)];
-
-        $subject = $data['subjects'][$lang][array_rand($data['subjects'][$lang])];
-        $adj = $data['adjectives'][$lang][array_rand($data['adjectives'][$lang])];
-        $verb = $data['verbs'][$lang][array_rand($data['verbs'][$lang])];
-
-        $title = match ($lang) {
-            'fr' => sprintf('%s %s : pourquoi il faut %s le futur', $subject, $adj, $verb),
-            'en' => sprintf('%s %s: why we need to %s the future', $adj, $subject, $verb),
-            default => sprintf('%s %s: warum wir die Zukunft %s müssen', $adj, $subject, $verb),
-        };
-
-        $id = uniqid(prefix: 'rand_', more_entropy: true);
-        $subjectSlug = (string) preg_replace(pattern: '/[^a-z0-9]+/i', replacement: '-', subject: $subject);
-        $slug = mb_strtolower(string: $subjectSlug);
-        $domain = $slug . '.example.com';
-        $url = 'https://' . $domain . '/' . $id;
-        $content = sprintf(
-            'Contenu généré aléatoirement à propos de %s (%s). Cet article explore comment %s peut être %s pour tout le monde.',
-            $subject,
-            $lang,
-            $subject,
-            $adj,
-        );
-
-        return [
-            'id' => $id,
-            'title' => $title,
-            'url' => $url,
-            'content' => $content,
-            'language' => $lang,
-            'domain' => $domain,
-        ];
     }
 }
