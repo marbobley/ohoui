@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Application\Service\SearchUseCase;
 use App\Domain\Model\SearchCriteria;
+use Exception;
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -116,7 +117,7 @@ final class SearchCommand extends Command
             $io->table(['Titre', 'URL', 'Domaine'], $rows);
 
             return Command::SUCCESS;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $io->error(sprintf('Une erreur est survenue lors de la recherche : %s', $e->getMessage()));
 
             return Command::FAILURE;
