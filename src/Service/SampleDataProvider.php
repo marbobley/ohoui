@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use DateMalformedStringException;
 use DateTimeImmutable;
 
 use function array_rand;
@@ -17,6 +18,7 @@ class SampleDataProvider
 {
     /**
      * @return array<int, array{id: string, title: string, url: string, content: string, language: string, domain: string, indexed_at: DateTimeImmutable}>
+     * @throws DateMalformedStringException
      */
     public function getSamples(): array
     {
@@ -32,6 +34,7 @@ class SampleDataProvider
 
     /**
      * @return array{id: string, title: string, url: string, content: string, language: string, domain: string, indexed_at: DateTimeImmutable}
+     * @throws DateMalformedStringException
      */
     public function generateRandomDocument(): array
     {
