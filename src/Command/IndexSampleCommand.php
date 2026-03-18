@@ -7,6 +7,8 @@ namespace App\Command;
 use App\Application\Service\IndexUseCase;
 use App\Domain\Model\Document;
 use App\Service\SampleDataProvider;
+use DateMalformedStringException;
+use DateTimeImmutable;
 use LogicException;
 use Override;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -40,6 +42,7 @@ class IndexSampleCommand extends Command
      * @param int $count
      * @param SymfonyStyle $io
      * @return void
+     * @throws DateMalformedStringException
      */
     private function populate(int $count, SymfonyStyle $io): void
     {
@@ -80,7 +83,7 @@ class IndexSampleCommand extends Command
     }
 
     /**
-     * @throws InvalidArgumentException
+     * @throws InvalidArgumentException|DateMalformedStringException
      */
     #[Override]
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -107,7 +110,7 @@ class IndexSampleCommand extends Command
     }
 
     /**
-     * @param array{id: string, title: string, url: string, content: string, language: string, domain: string, indexed_at: \DateTimeImmutable} $data
+     * @param array{id: string, title: string, url: string, content: string, language: string, domain: string, indexed_at: DateTimeImmutable} $data
      */
     private function indexDocument(array $data): void
     {

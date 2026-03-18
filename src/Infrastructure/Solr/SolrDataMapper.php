@@ -8,7 +8,6 @@ use Override;
 use Solarium\Component\ComponentAwareQueryInterface;
 use Solarium\Component\Result\Highlighting\Highlighting;
 use Solarium\Exception\UnexpectedValueException;
-use Solarium\QueryType\Select\Query\Query as SelectQuery;
 use Solarium\QueryType\Select\Result\Document;
 use Solarium\QueryType\Select\Result\Result;
 

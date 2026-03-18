@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Solr;
 
 use Override;
+use Solarium\Core\Query\Helper;
 use Solarium\QueryType\Select\Query\Query as SelectQuery;
 
 use function preg_match;
@@ -36,7 +37,7 @@ class SolrQueryBuilder implements SolrQueryBuilderInterface
         $hl->setSnippets(1);
     }
 
-    private function configureQuery(SelectQuery $select, \Solarium\Core\Query\Helper $helper, string $query): void
+    private function configureQuery(SelectQuery $select, Helper $helper, string $query): void
     {
         if (str_contains($query, ':')) {
             // Si l'utilisateur spécifie déjà un champ, on laisse passer mais on devrait idéalement parser.
@@ -68,7 +69,7 @@ class SolrQueryBuilder implements SolrQueryBuilderInterface
         $select->setQuery($query);
     }
 
-    private function configureFilters(SelectQuery $select, \Solarium\Core\Query\Helper $helper, array $filters): void
+    private function configureFilters(SelectQuery $select, Helper $helper, array $filters): void
     {
         /**
          * @var string $field
