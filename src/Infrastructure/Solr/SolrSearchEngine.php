@@ -34,7 +34,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             'content' => $document->getContent(),
             'language' => $document->getLanguage(),
             'domain' => $document->getDomain(),
-            'indexed_at_dt' => $document->getIndexedAt()?->format(DateTimeImmutable::ATOM),
+            'indexed_at_dt' => $document->getIndexedAt()?->format(DateTimeInterface::ATOM),
         ]);
     }
 

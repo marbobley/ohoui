@@ -58,7 +58,7 @@ layering = [
 core = ["Psr\\",
 "Webmozart\\Assert\\",
 "Override", "LogicException",
-"RuntimeException", "Exception","InvalidArgumentException", "DateTimeImmutable",
+"RuntimeException", "Exception","InvalidArgumentException", "DateTimeInterface", "DateTimeImmutable",
 "sprintf", "str_contains", "is_array",
 "reset", "count", "array_rand", "mb_strtolower",
 "preg_match", "preg_replace", "uniqid", "is_numeric", "explode", "htmlspecialchars", "str_replace",
