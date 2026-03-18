@@ -11,6 +11,7 @@ use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
 use App\Service\StringHandlerInterface;
 use DateTimeImmutable;
+use DateTimeInterface;
 use Override;
 
 use function is_array;
@@ -33,7 +34,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             'content' => $document->getContent(),
             'language' => $document->getLanguage(),
             'domain' => $document->getDomain(),
-            'indexed_at' => $document->getIndexedAt()?->format(DateTimeImmutable::ATOM),
+            'indexed_at_dt' => $document->getIndexedAt()?->format(DateTimeImmutable::ATOM),
         ]);
     }
 
@@ -84,11 +85,11 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     private function mapToDocument(array $docData, ?string $highlight = null): Document
     {
         $indexedAt = null;
-        if (($docData['indexed_at'] ?? null) !== null) {
+        if (($docData['indexed_at_dt'] ?? null) !== null) {
             /** @var mixed $dateValue */
-            $dateValue = $docData['indexed_at'];
+            $dateValue = $docData['indexed_at_dt'];
             $dateStr = is_array($dateValue) ? (string) reset($dateValue) : (string) $dateValue;
-            $dateTime = DateTimeImmutable::createFromFormat(DateTimeImmutable::ATOM, $dateStr);
+            $dateTime = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $dateStr);
             $indexedAt = $dateTime instanceof DateTimeImmutable ? $dateTime : null;
         }
 

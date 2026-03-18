@@ -45,7 +45,7 @@ class SolrSearchEngineTest extends TestCase
                 'content' => 'Test Content',
                 'language' => 'fr',
                 'domain' => 'test.com',
-                'indexed_at' => null,
+                'indexed_at_dt' => null,
             ]);
 
         $this->solrSearchEngine->index($document);
