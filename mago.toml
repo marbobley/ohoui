@@ -62,6 +62,7 @@ core = ["Psr\\",
 "sprintf", "str_contains", "is_array",
 "reset", "count", "array_rand", "mb_strtolower",
 "preg_match", "preg_replace", "uniqid", "is_numeric", "explode", "htmlspecialchars", "str_replace",
+"ENT_QUOTES", "ENT_SUBSTITUTE", "ENT_HTML5",
 "array_slice", "shuffle", "usort", "mt_rand"]
 framework = ["Symfony\\"]
 persistence = ["Doctrine\\", "Solarium\\"]
