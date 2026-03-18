@@ -38,8 +38,8 @@ final class IndexUseCaseIntegrationTest extends KernelTestCase
         $this->indexUseCase->execute($doc);
 
         $results = $this->searchUseCase->execute(new SearchCriteria('id:' . $doc->getId()));
-        static::assertNotEmpty($results->getDocuments());
-        static::assertSame('test-integration.com', $results->getDocuments()[0]->getDomain());
+        static::assertNotEmpty($results->getRelevant());
+        static::assertSame('test-integration.com', $results->getRelevant()[0]->getDomain());
     }
 
     public function testIndexDocumentWithSpecialCharactersAndLongContent(): void
@@ -56,9 +56,9 @@ final class IndexUseCaseIntegrationTest extends KernelTestCase
         $this->indexUseCase->execute($doc);
 
         $results = $this->searchUseCase->execute(new SearchCriteria('id:' . $doc->getId()));
-        static::assertNotEmpty($results->getDocuments());
-        static::assertSame('Titre avec "guillemets" & spéciaux : éàïô €', $results->getDocuments()[0]->getTitle());
-        static::assertSame($longContent, $results->getDocuments()[0]->getContent());
+        static::assertNotEmpty($results->getRelevant());
+        static::assertSame('Titre avec "guillemets" & spéciaux : éàïô €', $results->getRelevant()[0]->getTitle());
+        static::assertSame($longContent, $results->getRelevant()[0]->getContent());
     }
 
     public function testIndexDocumentWithMinimalContent(): void
@@ -68,7 +68,7 @@ final class IndexUseCaseIntegrationTest extends KernelTestCase
         $this->indexUseCase->execute($doc);
 
         $results = $this->searchUseCase->execute(new SearchCriteria('id:' . $doc->getId()));
-        static::assertNotEmpty($results->getDocuments());
-        static::assertSame('', $results->getDocuments()[0]->getContent());
+        static::assertNotEmpty($results->getRelevant());
+        static::assertSame('', $results->getRelevant()[0]->getContent());
     }
 }

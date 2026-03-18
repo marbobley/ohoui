@@ -9,6 +9,7 @@ use App\Domain\Model\SearchCriteria;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
+use DateTimeImmutable;
 use Override;
 
 use function htmlspecialchars;
@@ -32,6 +33,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             'content' => $document->getContent(),
             'language' => $document->getLanguage(),
             'domain' => $document->getDomain(),
+            'indexed_at' => $document->getIndexedAt()?->format(DateTimeImmutable::ATOM),
         ]);
     }
 
@@ -105,6 +107,13 @@ readonly class SolrSearchEngine implements SearchEngineInterface
      */
     private function mapToDocument(array $docData, ?string $highlight = null): Document
     {
+        $indexedAt = null;
+        if (isset($docData['indexed_at'])) {
+            $dateValue = $docData['indexed_at'];
+            $dateStr = is_array($dateValue) ? (string) reset($dateValue) : (string) $dateValue;
+            $indexedAt = DateTimeImmutable::createFromFormat(DateTimeImmutable::ATOM, $dateStr) ?: null;
+        }
+
         return new Document(
             $this->extractStringValue($docData, 'id'),
             $this->extractStringValue($docData, 'title'),
@@ -113,6 +122,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             $this->extractStringValue($docData, 'language'),
             $this->extractStringValue($docData, 'domain'),
             $highlight,
+            $indexedAt,
         );
     }
 

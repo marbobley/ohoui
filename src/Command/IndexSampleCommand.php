@@ -107,7 +107,7 @@ class IndexSampleCommand extends Command
     }
 
     /**
-     * @param array{id: string, title: string, url: string, content: string, language: string, domain: string} $data
+     * @param array{id: string, title: string, url: string, content: string, language: string, domain: string, indexed_at: \DateTimeImmutable} $data
      */
     private function indexDocument(array $data): void
     {
@@ -119,6 +119,7 @@ class IndexSampleCommand extends Command
                 $data['content'],
                 $data['language'],
                 $data['domain'],
+                indexedAt: $data['indexed_at'],
             ),
         );
     }

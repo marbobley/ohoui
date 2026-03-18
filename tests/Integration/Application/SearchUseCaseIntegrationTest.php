@@ -36,9 +36,9 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute(new SearchCriteria('Décentralisé'));
 
-        SearchUseCaseIntegrationTest::assertNotEmpty($results->getDocuments());
+        SearchUseCaseIntegrationTest::assertNotEmpty($results->getRelevant());
         SearchUseCaseIntegrationTest::assertTrue(
-            array_any($results->getDocuments(), fn($d) => $d->getTitle() === 'Le Web Décentralisé en 2026')
+            array_any($results->getRelevant(), fn($d) => $d->getTitle() === 'Le Web Décentralisé en 2026')
         );
         SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(1, $results->getTotalCount());
     }
@@ -50,8 +50,8 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute(new SearchCriteria('language:en'));
 
-        SearchUseCaseIntegrationTest::assertNotEmpty($results->getDocuments());
-        SearchUseCaseIntegrationTest::assertContainsOnlyInstancesOf(Document::class, $results->getDocuments());
+        SearchUseCaseIntegrationTest::assertNotEmpty($results->getRelevant());
+        SearchUseCaseIntegrationTest::assertContainsOnlyInstancesOf(Document::class, $results->getRelevant());
     }
 
     public function testSearchById(): void
@@ -61,8 +61,8 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute(new SearchCriteria('id:' . $doc->getId()));
 
-        SearchUseCaseIntegrationTest::assertCount(1, $results->getDocuments());
-        SearchUseCaseIntegrationTest::assertSame($doc->getId(), $results->getDocuments()[0]->getId());
+        SearchUseCaseIntegrationTest::assertCount(1, $results->getRelevant());
+        SearchUseCaseIntegrationTest::assertSame($doc->getId(), $results->getRelevant()[0]->getId());
     }
 
     public function testSearchWithSpecialCharactersInField(): void
@@ -72,8 +72,8 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute(new SearchCriteria('title:Décentralisé'));
 
-        SearchUseCaseIntegrationTest::assertNotEmpty($results->getDocuments());
-        SearchUseCaseIntegrationTest::assertTrue(array_any($results->getDocuments(), fn($d) => $d->getId() === $doc->getId()));
+        SearchUseCaseIntegrationTest::assertNotEmpty($results->getRelevant());
+        SearchUseCaseIntegrationTest::assertTrue(array_any($results->getRelevant(), fn($d) => $d->getId() === $doc->getId()));
     }
 
     public function testSearchRankingBoostsTitle(): void
@@ -96,9 +96,9 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         $results = $this->searchUseCase->execute(new SearchCriteria('BoostKeyword'));
 
-        SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(2, count($results->getDocuments()));
+        SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(2, count($results->getRelevant()));
         // Le document avec le mot-clé dans le titre doit être en première position grâce au boost
-        SearchUseCaseIntegrationTest::assertSame($docTitle->getId(), $results->getDocuments()[0]->getId());
+        SearchUseCaseIntegrationTest::assertSame($docTitle->getId(), $results->getRelevant()[0]->getId());
     }
 
     public function testPagination(): void
@@ -111,17 +111,17 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         // Page 1
         $resultsPage1 = $this->searchUseCase->execute(new SearchCriteria('title:"Pagination test doc"', 1, 10));
-        SearchUseCaseIntegrationTest::assertCount(10, $resultsPage1->getDocuments());
+        SearchUseCaseIntegrationTest::assertCount(10, $resultsPage1->getRelevant());
         SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(15, $resultsPage1->getTotalCount());
 
         // Page 2
         $resultsPage2 = $this->searchUseCase->execute(new SearchCriteria('title:"Pagination test doc"', 2, 10));
-        SearchUseCaseIntegrationTest::assertCount(5, $resultsPage2->getDocuments());
+        SearchUseCaseIntegrationTest::assertCount(5, $resultsPage2->getRelevant());
         SearchUseCaseIntegrationTest::assertGreaterThanOrEqual(15, $resultsPage2->getTotalCount());
 
         // Vérifier que les documents sont différents
-        $idsPage1 = array_map(fn($d) => $d->getId(), $resultsPage1->getDocuments());
-        $idsPage2 = array_map(fn($d) => $d->getId(), $resultsPage2->getDocuments());
+        $idsPage1 = array_map(fn($d) => $d->getId(), $resultsPage1->getRelevant());
+        $idsPage2 = array_map(fn($d) => $d->getId(), $resultsPage2->getRelevant());
 
         foreach ($idsPage2 as $id) {
             SearchUseCaseIntegrationTest::assertNotContains($id, $idsPage1);
@@ -139,21 +139,21 @@ final class SearchUseCaseIntegrationTest extends KernelTestCase
 
         // Filtrer par langue fr
         $results = $this->searchUseCase->execute(new SearchCriteria('id:filter-*', 1, 10, ['language' => 'fr']));
-        self::assertCount(2, $results->getDocuments());
-        foreach ($results->getDocuments() as $doc) {
+        self::assertCount(2, $results->getRelevant());
+        foreach ($results->getRelevant() as $doc) {
             self::assertSame('fr', $doc->getLanguage());
         }
 
         // Filtrer par domaine a.com
         $results = $this->searchUseCase->execute(new SearchCriteria('id:filter-*', 1, 10, ['domain' => 'a.com']));
-        self::assertCount(2, $results->getDocuments());
-        foreach ($results->getDocuments() as $doc) {
+        self::assertCount(2, $results->getRelevant());
+        foreach ($results->getRelevant() as $doc) {
             self::assertSame('a.com', $doc->getDomain());
         }
 
         // Combiner les filtres
         $results = $this->searchUseCase->execute(new SearchCriteria('id:filter-*', 1, 10, ['language' => 'fr', 'domain' => 'a.com']));
-        self::assertCount(1, $results->getDocuments());
-        self::assertSame('filter-1', $results->getDocuments()[0]->getId());
+        self::assertCount(1, $results->getRelevant());
+        self::assertSame('filter-1', $results->getRelevant()[0]->getId());
     }
 }

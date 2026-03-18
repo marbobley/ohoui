@@ -87,22 +87,25 @@ final class SearchCommand extends Command
         try {
             $page = ($offset / $limit) + 1;
             $criteria = new SearchCriteria($query, (int) $page, $limit, $filters);
-            $result = $this->searchUseCase->execute($criteria);
+            $categorizedResult = $this->searchUseCase->execute($criteria);
 
-            if (0 === $result->getTotalCount()) {
+            if (0 === $categorizedResult->getTotalCount()) {
                 $io->warning('Aucun résultat trouvé.');
 
                 return Command::SUCCESS;
             }
 
+            // Pour la CLI, on n'affiche que les résultats pertinents
+            $documents = $categorizedResult->getRelevant();
+
             $io->success(sprintf(
                 'Trouvé %d document(s) (total: %d)',
-                count($result->getDocuments()),
-                $result->getTotalCount(),
+                count($documents),
+                $categorizedResult->getTotalCount(),
             ));
 
             $rows = [];
-            foreach ($result->getDocuments() as $document) {
+            foreach ($documents as $document) {
                 $rows[] = [
                     $document->getTitle(),
                     $document->getUrl(),
