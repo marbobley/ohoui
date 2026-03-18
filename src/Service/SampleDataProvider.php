@@ -23,7 +23,7 @@ class SampleDataProvider
         $samples = SampleData::getSamples();
         $results = [];
         foreach ($samples as $sample) {
-            $sample['indexed_at'] = new DateTimeImmutable('-' . mt_rand(0, 30) . ' days');
+            $sample['indexed_at'] = new DateTimeImmutable('-' . mt_rand(min: 0, max: 30) . ' days');
             $results[] = $sample;
         }
 
@@ -65,7 +65,7 @@ class SampleDataProvider
             ),
             'language' => $lang,
             'domain' => $domain,
-            'indexed_at' => new DateTimeImmutable('-' . mt_rand(0, 365) . ' days'),
+            'indexed_at' => new DateTimeImmutable('-' . mt_rand(min: 0, max: 365) . ' days'),
         ];
     }
 }

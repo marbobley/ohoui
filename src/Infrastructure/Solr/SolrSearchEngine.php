@@ -108,10 +108,12 @@ readonly class SolrSearchEngine implements SearchEngineInterface
     private function mapToDocument(array $docData, ?string $highlight = null): Document
     {
         $indexedAt = null;
-        if (isset($docData['indexed_at'])) {
+        if (($docData['indexed_at'] ?? null) !== null) {
+            /** @var mixed $dateValue */
             $dateValue = $docData['indexed_at'];
             $dateStr = is_array($dateValue) ? (string) reset($dateValue) : (string) $dateValue;
-            $indexedAt = DateTimeImmutable::createFromFormat(DateTimeImmutable::ATOM, $dateStr) ?: null;
+            $dateTime = DateTimeImmutable::createFromFormat(DateTimeImmutable::ATOM, $dateStr);
+            $indexedAt = $dateTime instanceof DateTimeImmutable ? $dateTime : null;
         }
 
         return new Document(
