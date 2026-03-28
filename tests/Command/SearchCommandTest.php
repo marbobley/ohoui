@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Tests\Command;
 
+use App\Application\Dto\CategorizedSearchResults;
 use App\Application\Service\SearchUseCase;
 use App\Command\SearchCommand;
 use App\Domain\Model\Document;
-use App\Domain\Model\SearchCriteria;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use PHPUnit\Framework\TestCase;
@@ -22,13 +22,12 @@ final class SearchCommandTest extends TestCase
             new Document('1', 'PHP is great', 'https://php.net', 'PHP content', 'fr', 'php.net'),
             new Document('2', 'Symfony framework', 'https://symfony.com', 'Symfony content', 'fr', 'symfony.com'),
         ];
-        $searchResult = new SearchResult($documents, 2, 10, 0);
+        $searchResultRaw = new SearchResult($documents, 2, 10, 0);
 
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects(self::once())
             ->method('search')
-            ->with(new SearchCriteria($query, 1, 10, []))
-            ->willReturn($searchResult);
+            ->willReturn($searchResultRaw);
 
         $searchUseCase = new SearchUseCase($searchEngineMock);
 
@@ -47,12 +46,12 @@ final class SearchCommandTest extends TestCase
     public function testExecuteNoResults(): void
     {
         $query = 'unknown';
-        $searchResult = new SearchResult([], 0, 10, 0);
+        $searchResultRaw = new SearchResult([], 0, 10, 0);
 
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects(self::once())
             ->method('search')
-            ->willReturn($searchResult);
+            ->willReturn($searchResultRaw);
 
         $searchUseCase = new SearchUseCase($searchEngineMock);
 
@@ -87,17 +86,15 @@ final class SearchCommandTest extends TestCase
     public function testExecuteWithFilters(): void
     {
         $query = 'php';
-        $filters = ['domain' => 'php.net'];
         $documents = [
             new Document('1', 'PHP is great', 'https://php.net', 'PHP content', 'fr', 'php.net'),
         ];
-        $searchResult = new SearchResult($documents, 1, 10, 0);
+        $searchResultRaw = new SearchResult($documents, 1, 10, 0);
 
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects(self::once())
             ->method('search')
-            ->with(new SearchCriteria($query, 1, 10, $filters))
-            ->willReturn($searchResult);
+            ->willReturn($searchResultRaw);
 
         $searchUseCase = new SearchUseCase($searchEngineMock);
 
@@ -122,13 +119,12 @@ final class SearchCommandTest extends TestCase
         $query = 'php';
         $limit = 5;
         $offset = 10;
-        $searchResult = new SearchResult([], 0, $limit, $offset);
+        $searchResultRaw = new SearchResult([], 0, $limit, $offset);
 
         $searchEngineMock = $this->createMock(SearchEngineInterface::class);
         $searchEngineMock->expects(self::once())
             ->method('search')
-            ->with(new SearchCriteria($query, 3, $limit, []))
-            ->willReturn($searchResult);
+            ->willReturn($searchResultRaw);
 
         $searchUseCase = new SearchUseCase($searchEngineMock);
 

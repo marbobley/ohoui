@@ -9,17 +9,19 @@ use App\Domain\Model\SearchCriteria;
 use App\Domain\Model\SearchResult;
 use App\Domain\Repository\SearchEngineInterface;
 use App\Service\SolrClientServiceInterface;
+use App\Service\StringHandlerInterface;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Override;
 
-use function htmlspecialchars;
 use function is_array;
 use function reset;
-use function str_replace;
 
 readonly class SolrSearchEngine implements SearchEngineInterface
 {
     public function __construct(
         private SolrClientServiceInterface $solrClientService,
+        private StringHandlerInterface $stringHandler,
     ) {}
 
     #[Override]
@@ -32,6 +34,7 @@ readonly class SolrSearchEngine implements SearchEngineInterface
             'content' => $document->getContent(),
             'language' => $document->getLanguage(),
             'domain' => $document->getDomain(),
+            'indexed_at_dt' => $document->getIndexedAt()?->format(DateTimeInterface::ATOM),
         ]);
     }
 
@@ -61,37 +64,13 @@ readonly class SolrSearchEngine implements SearchEngineInterface
 
             if ([] !== $contentHighlights) {
                 $highlight = (string) reset($contentHighlights);
-                $highlight = $this->sanitizeHighlight($highlight);
+                $highlight = $this->stringHandler->sanitizeHighlight($highlight, '<em class="hl">', '</em>');
             }
 
             $documents[] = $this->mapToDocument($docData, $highlight);
         }
 
         return new SearchResult($documents, $response->numFound, $criteria->getLimit(), $criteria->getOffset());
-    }
-
-    private function sanitizeHighlight(string $highlight): string
-    {
-        // On définit les balises de confiance utilisées par SolrQueryBuilder
-        $prefix = '<em class="hl">';
-        $postfix = '</em>';
-
-        // On échappe tout le HTML de manière sécurisée
-        $sanitized = htmlspecialchars($highlight, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8');
-
-        // On ré-autorise uniquement les balises EXACTES générées par Solr
-        // L'échappement par htmlspecialchars transforme les balises en &lt;em class=&quot;hl&quot;&gt;
-        return str_replace(
-            [
-                htmlspecialchars($prefix, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8'),
-                htmlspecialchars($postfix, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, encoding: 'UTF-8'),
-            ],
-            [
-                $prefix,
-                $postfix,
-            ],
-            $sanitized,
-        );
     }
 
     #[Override]
@@ -105,25 +84,24 @@ readonly class SolrSearchEngine implements SearchEngineInterface
      */
     private function mapToDocument(array $docData, ?string $highlight = null): Document
     {
+        $indexedAt = null;
+        if (($docData['indexed_at_dt'] ?? null) !== null) {
+            /** @var mixed $dateValue */
+            $dateValue = $docData['indexed_at_dt'];
+            $dateStr = is_array($dateValue) ? (string) reset($dateValue) : (string) $dateValue;
+            $dateTime = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $dateStr);
+            $indexedAt = $dateTime instanceof DateTimeImmutable ? $dateTime : null;
+        }
+
         return new Document(
-            $this->extractStringValue($docData, 'id'),
-            $this->extractStringValue($docData, 'title'),
-            $this->extractStringValue($docData, 'url'),
-            $this->extractStringValue($docData, 'content'),
-            $this->extractStringValue($docData, 'language'),
-            $this->extractStringValue($docData, 'domain'),
+            $this->stringHandler->extractStringValue($docData, 'id'),
+            $this->stringHandler->extractStringValue($docData, 'title'),
+            $this->stringHandler->extractStringValue($docData, 'url'),
+            $this->stringHandler->extractStringValue($docData, 'content'),
+            $this->stringHandler->extractStringValue($docData, 'language'),
+            $this->stringHandler->extractStringValue($docData, 'domain'),
             $highlight,
+            $indexedAt,
         );
-    }
-
-    /**
-     * @param array<array-key, mixed> $data
-     */
-    private function extractStringValue(array $data, string $key): string
-    {
-        /** @var mixed $value */
-        $value = $data[$key] ?? '';
-
-        return is_array($value) ? (string) reset($value) : (string) $value;
     }
 }

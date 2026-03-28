@@ -16,7 +16,8 @@ final class DocumentFactory
         string $content = 'Default Content',
         string $language = 'fr',
         string $domain = 'default.test',
-        ?string $highlight = null
+        ?string $highlight = null,
+        ?\DateTimeImmutable $indexedAt = null
     ): Document {
         return new Document(
             $id ?? 'test-' . uniqid(),
@@ -25,7 +26,8 @@ final class DocumentFactory
             $content,
             $language,
             $domain,
-            $highlight
+            $highlight,
+            $indexedAt
         );
     }
 

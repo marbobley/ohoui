@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Model;
 
+use DateTimeImmutable;
+
 final readonly class Document
 {
     public function __construct(
@@ -14,11 +16,17 @@ final readonly class Document
         private string $language,
         private string $domain,
         private ?string $highlight = null,
+        private ?DateTimeImmutable $indexedAt = null,
     ) {}
 
     public function getHighlight(): ?string
     {
         return $this->highlight;
+    }
+
+    public function getIndexedAt(): ?DateTimeImmutable
+    {
+        return $this->indexedAt;
     }
 
     public function getId(): string

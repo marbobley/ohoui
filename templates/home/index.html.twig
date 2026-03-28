@@ -2,6 +2,33 @@
 
 {% block title %}Ohoui - Le moteur de recherche français{% endblock %}
 
+{% macro render_doc(doc) %}
+    <div class="card mb-3 shadow-sm border-0">
+        <div class="card-body p-3">
+            <h3 class="h6 mb-1 text-truncate"><a href="{{ doc.getUrl() }}" title="{{ doc.getTitle() }}">{{ doc.getTitle() }}</a></h3>
+            <div class="text-success x-small text-truncate mb-2" style="font-size: 0.75rem;">{{ doc.getUrl() }}</div>
+            <p class="small mb-2 text-muted">
+                {% if doc.getHighlight() %}
+                    {{ doc.getHighlight()|raw }}
+                {% else %}
+                    {{ doc.getContent()|default('')|u.truncate(100, '...') }}
+                {% endif %}
+            </p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-light text-dark border">{{ doc.getLanguage() }}</span>
+                    <span class="badge bg-light text-dark border">{{ doc.getDomain() }}</span>
+                </div>
+                {% if doc.getIndexedAt() %}
+                    <small class="text-muted" style="font-size: 0.7rem;">
+                        {{ doc.getIndexedAt()|date('d/m/Y') }}
+                    </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
 {% block body %}
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -17,53 +44,42 @@
     </div>
 
     {% if results is not null %}
-        <div class="row justify-content-center">
-            <div class="col-md-10">
+        <div class="row">
+            <div class="col-12">
                 <p class="text-muted">{{ results.totalCount }} résultats trouvés</p>
                 <hr>
-                {% for doc in results.documents %}
-                    <div class="mb-4">
-                        <h3 class="h5 mb-1"><a href="{{ doc.getUrl() }}">{{ doc.getTitle() }}</a></h3>
-                        <div class="text-success small mb-1">{{ doc.getUrl() }}</div>
-                        <p class="mb-0">
-                            {% if doc.getHighlight() %}
-                                {{ doc.getHighlight()|raw }}
-                            {% else %}
-                                {{ doc.getContent()|default('')|u.truncate(200, '...') }}
-                            {% endif %}
-                        </p>
-                        <span class="badge bg-secondary">{{ doc.getLanguage() }}</span>
-                        <span class="badge bg-info">{{ doc.getDomain() }}</span>
-                    </div>
+            </div>
+        </div>
+
+        <div class="row">
+            {# Colonne 1 : Les plus pertinents #}
+            <div class="col-md-4 border-end">
+                <h2 class="h4 mb-4 text-primary"><i class="bi bi-star-fill"></i> Les plus pertinents</h2>
+                {% for doc in results.getRelevant() %}
+                    {{ _self.render_doc(doc) }}
                 {% else %}
-                    <p>Aucun résultat trouvé pour votre recherche.</p>
+                    <p class="text-muted">Aucun résultat pertinent.</p>
                 {% endfor %}
+            </div>
 
-                {% if results.totalCount > results.limit %}
-                    <nav aria-label="Pagination des résultats" class="mt-5">
-                        <ul class="pagination justify-content-center">
-                            {% set totalPages = (results.totalCount / results.limit)|round(0, 'ceil') %}
+            {# Colonne 2 : Les plus récents #}
+            <div class="col-md-4 border-end">
+                <h2 class="h4 mb-4 text-success"><i class="bi bi-clock-history"></i> Les plus récents</h2>
+                {% for doc in results.getRecent() %}
+                    {{ _self.render_doc(doc) }}
+                {% else %}
+                    <p class="text-muted">Aucun résultat récent.</p>
+                {% endfor %}
+            </div>
 
-                            <li class="page-item {{ currentPage <= 1 ? 'disabled' }}">
-                                <a class="page-item page-link" href="{{ path('app_home', {q: query, page: currentPage - 1, filters: activeFilters}) }}">Précédent</a>
-                            </li>
-
-                            {% for p in 1..totalPages %}
-                                {% if p <= 5 or p > totalPages - 2 or (p >= currentPage - 2 and p <= currentPage + 2) %}
-                                    <li class="page-item {{ p == currentPage ? 'active' }}">
-                                        <a class="page-link" href="{{ path('app_home', {q: query, page: p, filters: activeFilters}) }}">{{ p }}</a>
-                                    </li>
-                                {% elseif p == 6 or p == totalPages - 2 %}
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
-                                {% endif %}
-                            {% endfor %}
-
-                            <li class="page-item {{ currentPage >= totalPages ? 'disabled' }}">
-                                <a class="page-link" href="{{ path('app_home', {q: query, page: currentPage + 1, filters: activeFilters}) }}">Suivant</a>
-                            </li>
-                        </ul>
-                    </nav>
-                {% endif %}
+            {# Colonne 3 : Aléatoire #}
+            <div class="col-md-4">
+                <h2 class="h4 mb-4 text-info"><i class="bi bi-shuffle"></i> Aléatoire</h2>
+                {% for doc in results.getRandom() %}
+                    {{ _self.render_doc(doc) }}
+                {% else %}
+                    <p class="text-muted">Aucun résultat aléatoire.</p>
+                {% endfor %}
             </div>
         </div>
     {% elseif query is not empty %}

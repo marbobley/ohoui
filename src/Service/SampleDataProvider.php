@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use DateMalformedStringException;
+use DateTimeImmutable;
+
 use function array_rand;
 use function mb_strtolower;
+use function mt_rand;
 use function preg_replace;
 use function sprintf;
 use function uniqid;
@@ -13,15 +17,24 @@ use function uniqid;
 class SampleDataProvider
 {
     /**
-     * @return array<int, array{id: string, title: string, url: string, content: string, language: string, domain: string}>
+     * @return array<int, array{id: string, title: string, url: string, content: string, language: string, domain: string, indexed_at: DateTimeImmutable}>
+     * @throws DateMalformedStringException
      */
     public function getSamples(): array
     {
-        return SampleData::getSamples();
+        $samples = SampleData::getSamples();
+        $results = [];
+        foreach ($samples as $sample) {
+            $sample['indexed_at'] = new DateTimeImmutable('-' . mt_rand(min: 0, max: 30) . ' days');
+            $results[] = $sample;
+        }
+
+        return $results;
     }
 
     /**
-     * @return array{id: string, title: string, url: string, content: string, language: string, domain: string}
+     * @return array{id: string, title: string, url: string, content: string, language: string, domain: string, indexed_at: DateTimeImmutable}
+     * @throws DateMalformedStringException
      */
     public function generateRandomDocument(): array
     {
@@ -55,6 +68,7 @@ class SampleDataProvider
             ),
             'language' => $lang,
             'domain' => $domain,
+            'indexed_at' => new DateTimeImmutable('-' . mt_rand(min: 0, max: 365) . ' days'),
         ];
     }
 }

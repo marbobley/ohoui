@@ -8,6 +8,7 @@ use App\Domain\Model\SearchCriteria;
 use App\Infrastructure\Solr\SolrResponse;
 use App\Infrastructure\Solr\SolrSearchEngine;
 use App\Service\SolrClientServiceInterface;
+use App\Service\StringHandler;
 use App\Tests\Util\DocumentFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -15,12 +16,14 @@ use PHPUnit\Framework\TestCase;
 class SolrSearchEngineTest extends TestCase
 {
     private SolrClientServiceInterface&MockObject $solrClientServiceMock;
+    private StringHandler $stringHandler;
     private SolrSearchEngine $solrSearchEngine;
 
     protected function setUp(): void
     {
         $this->solrClientServiceMock = $this->createMock(SolrClientServiceInterface::class);
-        $this->solrSearchEngine = new SolrSearchEngine($this->solrClientServiceMock);
+        $this->stringHandler = new StringHandler();
+        $this->solrSearchEngine = new SolrSearchEngine($this->solrClientServiceMock, $this->stringHandler);
     }
 
     public function testIndexDelegatesToClientService(): void
@@ -42,6 +45,7 @@ class SolrSearchEngineTest extends TestCase
                 'content' => 'Test Content',
                 'language' => 'fr',
                 'domain' => 'test.com',
+                'indexed_at_dt' => null,
             ]);
 
         $this->solrSearchEngine->index($document);

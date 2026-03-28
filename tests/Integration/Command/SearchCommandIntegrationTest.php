@@ -145,7 +145,7 @@ final class SearchCommandIntegrationTest extends KernelTestCase
         $output = $commandTester->getDisplay();
         $this->assertStringContainsString('Trouvé 2 document(s) (total: 3)', $output);
 
-        // Test offset à 2 (devrait donner le 3ème document)
+        // Test offset à 2
         $commandTester->execute([
             'query' => 'pagination',
             '--limit' => 2,

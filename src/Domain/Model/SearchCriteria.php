@@ -29,11 +29,6 @@ final readonly class SearchCriteria
         return $this->query;
     }
 
-    public function getPage(): int
-    {
-        return $this->page;
-    }
-
     public function getLimit(): int
     {
         return $this->limit;
